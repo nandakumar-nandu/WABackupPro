@@ -16,4 +16,12 @@
     <!-- Screen Placeholders -->
     <string name="placeholder_history">Backup logs and historical items will appear here.</string>
     <string name="placeholder_settings">Configure your backup settings and Google Drive credentials here.</string>
+
+    <!-- Permission Strings -->
+    <string name="permission_required_title">Permission Required</string>
+    <string name="permission_rationale_storage">WABackupPro needs access to your media files to find and backup WhatsApp Business databases and media.</string>
+    <string name="permission_denied_message">Storage permission is required to scan files.</string>
+    <string name="ok">OK</string>
+    <string name="cancel">Cancel</string>
+    <string name="settings">Settings</string>
 </resources>

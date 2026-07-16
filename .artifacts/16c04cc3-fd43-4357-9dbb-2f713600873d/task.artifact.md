@@ -1,0 +1,8 @@
+- `[x]` **Commit 2: WhatsApp Business File Scanner**
+    - `[x]` Create `BackupFile` data model
+    - `[x]` Implement `FileScanner` with MediaStore API
+    - `[x]` Update `AndroidManifest.xml` with required storage permissions
+    - `[x]` Update `MainViewModel` to trigger scanning
+    - `[x]` Implement permission handling and UI updates in `BackupFragment`
+    - `[x]` Update documentation (`CHANGELOG.md`, `README.md`, `WALKTHROUGH.md`, `SCREENTOUR.md`)
+    - `[x]` Verification

@@ -36,6 +36,21 @@ graph TD
     SaveFailedRecord --> NotifyFail[Notify User]
 ```
 
+### Permission Request Flow
+```mermaid
+graph TD
+    Start([Click Start Backup]) --> CheckPerm{Permissions Granted?}
+    CheckPerm -- Yes --> RunScan[Scan WhatsApp Files]
+    CheckPerm -- No --> ShowRationale{Show Rationale?}
+    ShowRationale -- Yes --> RationaleDialog[Show Explanation Dialog]
+    RationaleDialog --> Request[Request Permissions]
+    ShowRationale -- No --> Request
+    Request --> UserResponse{User Response}
+    UserResponse -- Granted --> RunScan
+    UserResponse -- Denied --> DeniedSnack[Show Denied Message]
+    UserResponse -- PermDenied --> SettingsSnack[Show Settings Link]
+```
+
 ## Setup Prerequisites
 
 To set up and run this application locally, you will need:

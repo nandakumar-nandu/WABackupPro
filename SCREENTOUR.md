@@ -9,8 +9,13 @@ This document gives an overview of the screens configured in the initial scaffol
 - **Visual Structure**:
   - **Header Toolbar**: App title "WABackupPro".
   - **Status Card**: Employs a cloud indicator showing states like "No backup run yet", "Backup in progress...", or "Backup complete".
-  - **Action Button**: Large "Start Backup Now" button with an icon.
-  - **Logs Section**: Live RecyclerView showing recent activity logs (e.g., connection logs, upload confirmations, warnings).
+  - **Action Button**: Large "Start Backup Now" button. Clicking this triggers the **Permission Flow** followed by a file scan.
+  - **Logs Section**: Displays the results of the file scan, such as "Scanned WhatsApp Business media. Found X files."
+
+### 2. Permissions Flow
+- **Rationale Dialog**: An `AlertDialog` that appears if the user previously denied permissions, explaining why access to media is required.
+- **System Prompt**: The standard Android permission request dialog.
+- **Denied Message**: A `Snackbar` with a "Settings" button that appears if permissions are permanently denied, allowing users to manually enable them.
 
 ### 2. Backup History Screen
 - **Purpose**: Displays a list of all past backups (both successful and failed runs) retrieved from the local Room database.

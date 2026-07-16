@@ -1,12 +1,23 @@
 package com.wabackuppro.ui.main
 
+import android.Manifest
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.net.Uri
+import android.os.Build
 import android.os.Bundle
+import android.provider.Settings
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.app.AlertDialog
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.google.android.material.snackbar.Snackbar
+import com.wabackuppro.R
 import com.wabackuppro.databinding.FragmentBackupBinding
 
 /**
@@ -22,6 +33,18 @@ class BackupFragment : Fragment() {
     private val viewModel: MainViewModel by activityViewModels()
     
     private lateinit var logsAdapter: LogsAdapter
+
+    // 🛡️ Permission Request Launcher
+    private val requestPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestMultiplePermissions()
+    ) { permissions ->
+        val allGranted = permissions.entries.all { it.value }
+        if (allGranted) {
+            viewModel.startBackup()
+        } else {
+            handlePermissionDenied()
+        }
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -51,10 +74,81 @@ class BackupFragment : Fragment() {
             logsAdapter.updateLogs(logs)
         }
 
+        // 🔗 Observe file count for UI feedback
+        viewModel.discoveredFilesCount.observe(viewLifecycleOwner) { count ->
+            if (count > 0) {
+                Snackbar.make(binding.root, "Discovered $count files to backup", Snackbar.LENGTH_SHORT).show()
+            }
+        }
+
         // 👆 Handle start backup button click
         binding.btnStartBackup.setOnClickListener {
-            viewModel.startBackup()
+            checkPermissionsAndStart()
         }
+    }
+
+    /**
+     * Checks for necessary storage permissions before triggering the backup scan.
+     */
+    private fun checkPermissionsAndStart() {
+        val permissionsNeeded = mutableListOf<String>()
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            // Android 13+
+            if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.READ_MEDIA_IMAGES) != PackageManager.PERMISSION_GRANTED) {
+                permissionsNeeded.add(Manifest.permission.READ_MEDIA_IMAGES)
+            }
+            if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.READ_MEDIA_VIDEO) != PackageManager.PERMISSION_GRANTED) {
+                permissionsNeeded.add(Manifest.permission.READ_MEDIA_VIDEO)
+            }
+        } else {
+            // Android < 13
+            if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+                permissionsNeeded.add(Manifest.permission.READ_EXTERNAL_STORAGE)
+            }
+        }
+
+        when {
+            permissionsNeeded.isEmpty() -> {
+                viewModel.startBackup()
+            }
+            shouldShowRequestPermissionRationale(permissionsNeeded[0]) -> {
+                showPermissionRationaleDialog(permissionsNeeded.toTypedArray())
+            }
+            else -> {
+                requestPermissionLauncher.launch(permissionsNeeded.toTypedArray())
+            }
+        }
+    }
+
+    /**
+     * Shows a rationale dialog to the user explaining why permissions are needed.
+     */
+    private fun showPermissionRationaleDialog(permissions: Array<String>) {
+        AlertDialog.Builder(requireContext())
+            .setTitle(R.string.permission_required_title)
+            .setMessage(R.string.permission_rationale_storage)
+            .setPositiveButton(R.string.ok) { _, _ ->
+                requestPermissionLauncher.launch(permissions)
+            }
+            .setNegativeButton(R.string.cancel, null)
+            .show()
+    }
+
+    /**
+     * Handles cases where the user denies permissions.
+     */
+    private fun handlePermissionDenied() {
+        Snackbar.make(
+            binding.root,
+            R.string.permission_denied_message,
+            Snackbar.LENGTH_LONG
+        ).setAction(R.string.settings) {
+            val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+                data = Uri.fromParts("package", requireContext().packageName, null)
+            }
+            startActivity(intent)
+        }.show()
     }
 
     override fun onDestroyView() {

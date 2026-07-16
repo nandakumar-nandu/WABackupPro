@@ -14,9 +14,10 @@ This app bridges this gap by offering a dedicated background scheduler that runs
 1. **Scheduling**:
    - The user opens the app and links their Google Drive account.
    - The app schedules a recurring `PeriodicWorkRequest` using WorkManager.
-2. **Accessing Database Files**:
-   - The worker locates the WhatsApp Business directory (typically under `Android/media/com.whatsapp.w4b/WhatsApp Business/Databases/`).
-   - It identifies the most recent database backup file (e.g., `msgstore.db.crypt14`).
+2. **File Scanning**:
+   - The app uses the `MediaStore` API to query for files in the `WhatsApp Business` media folder.
+   - It filters for specific types: `.pdf`, `.docx`, `.xlsx`, `.jpg`, `.png`, and `.mp4`.
+   - On Android 13+, it requests granular media permissions (`READ_MEDIA_IMAGES`, `READ_MEDIA_VIDEO`), while on older versions it uses `READ_EXTERNAL_STORAGE`.
 3. **Transmission**:
    - The app verifies network constraints (ensuring Wi-Fi is active to save mobile data).
    - Using the authenticated Google Drive client, it uploads the encrypted database file to the user's Google Drive application metadata folder (`appDataFolder`).
