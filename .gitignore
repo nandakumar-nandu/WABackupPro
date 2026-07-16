@@ -44,3 +44,6 @@ local.properties
 # Google Cloud API key config files
 .env
 .env*.local
+
+# Gemini / IDE Artifacts
+.artifacts/

@@ -14,7 +14,7 @@
         android:layout_marginTop="8dp"
         app:cardCornerRadius="16dp"
         app:cardElevation="2dp"
-        app:strokeColor="?attr/outline"
+        app:strokeColor="?attr/colorOutline"
         app:strokeWidth="1dp"
         app:cardBackgroundColor="?attr/colorSurfaceVariant"
         app:layout_constraintTop_toTopOf="parent"
@@ -34,8 +34,7 @@
                 app:tint="?attr/colorPrimary"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintBottom_toBottomOf="parent"
-                tools:ignore="ContentDescription" />
+                app:layout_constraintBottom_toBottomOf="parent" />
 
             <TextView
                 android:id="@+id/txt_card_title"
@@ -121,7 +120,7 @@
         tools:text="IMG_20240101_123456.jpg"
         tools:visibility="visible" />
 
-    <!-- Google Login Button -->
+    <!-- Action Buttons Row -->
     <com.google.android.material.button.MaterialButton
         android:id="@+id/btn_google_login"
         style="@style/Widget.Material3.Button.OutlinedButton"
@@ -134,16 +133,14 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toStartOf="@+id/btn_test_upload" />
 
-    <!-- Test Upload Button -->
     <com.google.android.material.button.MaterialButton
         android:id="@+id/btn_test_upload"
         style="@style/Widget.Material3.Button.OutlinedButton"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="12dp"
         android:layout_marginStart="4dp"
         android:text="@string/btn_test_upload"
-        app:layout_constraintTop_toBottomOf="@id/btn_start_backup"
+        app:layout_constraintTop_toTopOf="@id/btn_google_login"
         app:layout_constraintStart_toEndOf="@id/btn_google_login"
         app:layout_constraintEnd_toEndOf="parent" />
 

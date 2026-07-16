@@ -1,8 +1,0 @@
-- `[x]` **Commit 4: Full Backup Job with Progress Tracking**
-    - `[x]` Create `BackupProgress` data model
-    - `[x]` Implement `RunBackupUseCase` with orchestration and retry logic
-    - `[x]` Update `MainViewModel` to use `RunBackupUseCase` and expose progress LiveData
-    - `[x]` Update `fragment_backup.xml` with progress bar and status labels
-    - `[x]` Update `BackupFragment.kt` to observe progress and update UI
-    - `[x]` Update documentation (`CHANGELOG.md`, `README.md`, `WALKTHROUGH.md`, `SCREENTOUR.md`)
-    - `[x]` Verification

@@ -22,7 +22,7 @@ class LogsAdapter(private var logs: List<String> = emptyList()) :
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         // 🛠️ Inflate Android standard layout for list item
         val view = LayoutInflater.from(parent.context)
-            .inflate(android.R.id.simple_list_item_1, parent, false)
+            .inflate(android.R.layout.simple_list_item_1, parent, false)
         return ViewHolder(view)
     }
 

@@ -107,7 +107,7 @@ class RunBackupUseCase(
             try {
                 val fileId = driveClient.uploadFile(account, path, folderId, mimeType)
                 if (fileId != null) return true
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 if (attempts >= maxAttempts) break
                 // ⏱️ Exponential or linear backoff
                 delay(attempts * 1000L) 
