@@ -9,8 +9,11 @@ import androidx.lifecycle.viewModelScope
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import com.wabackuppro.data.remote.DriveClient
+import com.wabackuppro.domain.models.BackupProgress
+import com.wabackuppro.domain.usecases.RunBackupUseCase
 import com.wabackuppro.utils.FileScanner
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -23,10 +26,15 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     private val fileScanner = FileScanner(application)
     private val driveClient = DriveClient(application)
+    private val runBackupUseCase = RunBackupUseCase(fileScanner, driveClient)
 
     // 📊 Holds the current status of the backup operation
     private val _backupStatus = MutableLiveData<String>("No backup run yet")
     val backupStatus: LiveData<String> = _backupStatus
+
+    // 📈 Holds the real-time progress of the backup job
+    private val _backupProgress = MutableLiveData<BackupProgress>()
+    val backupProgress: LiveData<BackupProgress> = _backupProgress
 
     // 👤 Current authenticated Google account
     private val _googleAccount = MutableLiveData<GoogleSignInAccount?>(
@@ -71,19 +79,28 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     /**
-     * Triggers the backup process, including file scanning.
+     * Triggers the full backup process using the RunBackupUseCase.
      */
     fun startBackup() {
-        // 🚀 Starting backup process logic
-        _backupStatus.value = "Scanning for files..."
+        val account = _googleAccount.value ?: run {
+            addLog("❌ Error: Sign-in required to start backup")
+            return
+        }
 
-        // 🔍 Perform file scan
-        val files = fileScanner.scanWhatsAppBusinessFiles()
-        _discoveredFilesCount.value = files.size
-
-        // 📝 Update status and logs
-        _backupStatus.value = "Scan complete: Found ${files.size} files"
-        addLog("Scanned WhatsApp Business media. Found ${files.size} files.")
+        viewModelScope.launch(Dispatchers.IO) {
+            runBackupUseCase.execute(account).collect { progress ->
+                _backupProgress.postValue(progress)
+                _backupStatus.postValue(progress.status)
+                
+                // 📝 Log status changes or errors
+                if (progress.status.startsWith("Uploaded") || progress.status.startsWith("Failed")) {
+                    val icon = if (progress.status.startsWith("Uploaded")) "✅" else "❌"
+                    addLog("$icon ${progress.status}")
+                } else if (progress.status.contains("Complete") || progress.status.contains("Scanning")) {
+                    addLog("ℹ️ ${progress.status}")
+                }
+            }
+        }
     }
 
     /**

@@ -38,6 +38,20 @@ The application uses the **Google Drive REST API v3** combined with **Google Pla
    - Each run inserts a status entry (`SUCCESS` or `FAILED`) into the Room database.
    - The main dashboard updates the status card and recyclerView log list in real-time.
 
+## Running a Manual Backup (Implementation)
+
+1. **Triggering the Job**:
+   - When the user taps "Start Backup Now", the `MainViewModel` invokes the `RunBackupUseCase`.
+2. **Sequential Orchestration**:
+   - The use case first scans the local storage to build a list of files.
+   - It then establishes a date-stamped folder on Google Drive.
+   - Files are uploaded sequentially to prevent network congestion and to allow granular progress tracking.
+3. **Progress & Feedback**:
+   - Every file upload emits a state change. The UI reacts by updating the `LinearProgressIndicator` and appending a record to the `Activity Logs`.
+4. **Error Handling & Retries**:
+   - If a file upload fails (e.g., due to a temporary network timeout), the `RunBackupUseCase` automatically retries the operation up to **3 times**.
+   - After all retries are exhausted, the file is marked as failed (`❌`), and the process moves to the next file to ensure the entire backup isn't stalled by a single corrupted or missing item.
+
 ## User Journey Flowchart
 
 ```mermaid

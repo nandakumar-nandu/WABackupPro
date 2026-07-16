@@ -86,6 +86,25 @@ class BackupFragment : Fragment() {
             binding.txtStatusPlaceholder.text = status
         }
 
+        // 🔗 Observe backup progress updates
+        viewModel.backupProgress.observe(viewLifecycleOwner) { progress ->
+            if (progress != null && progress.totalFiles > 0) {
+                binding.progressBackup.visibility = View.VISIBLE
+                binding.txtProgressCount.visibility = View.VISIBLE
+                binding.txtCurrentFile.visibility = View.VISIBLE
+
+                binding.progressBackup.max = progress.totalFiles
+                binding.progressBackup.progress = progress.uploadedFiles
+                
+                binding.txtProgressCount.text = "Uploading ${progress.uploadedFiles} of ${progress.totalFiles} files"
+                binding.txtCurrentFile.text = progress.currentFileName
+            } else {
+                binding.progressBackup.visibility = View.GONE
+                binding.txtProgressCount.visibility = View.GONE
+                binding.txtCurrentFile.visibility = View.GONE
+            }
+        }
+
         // 🔗 Observe active activity log changes
         viewModel.activityLogs.observe(viewLifecycleOwner) { logs ->
             logsAdapter.updateLogs(logs)

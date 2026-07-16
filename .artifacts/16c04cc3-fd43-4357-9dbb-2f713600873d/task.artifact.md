@@ -1,15 +1,8 @@
-- `[x]` **Commit 2: WhatsApp Business File Scanner**
-    - `[x]` Create `BackupFile` data model
-    - `[x]` Implement `FileScanner` with MediaStore API
-    - `[x]` Update `AndroidManifest.xml` with required storage permissions
-    - `[x]` Update `MainViewModel` to trigger scanning
-    - `[x]` Implement permission handling and UI updates in `BackupFragment`
+- `[x]` **Commit 4: Full Backup Job with Progress Tracking**
+    - `[x]` Create `BackupProgress` data model
+    - `[x]` Implement `RunBackupUseCase` with orchestration and retry logic
+    - `[x]` Update `MainViewModel` to use `RunBackupUseCase` and expose progress LiveData
+    - `[x]` Update `fragment_backup.xml` with progress bar and status labels
+    - `[x]` Update `BackupFragment.kt` to observe progress and update UI
     - `[x]` Update documentation (`CHANGELOG.md`, `README.md`, `WALKTHROUGH.md`, `SCREENTOUR.md`)
-    - `[x]` Verification
-
-- `[x]` **Commit 3: Google Drive API Integration**
-    - `[x]` Implement `DriveClient.kt` with Auth, Folder Creation, and Upload
-    - `[x]` Update `MainViewModel` with Auth state and Test Upload trigger
-    - `[x]` Add Login/Test UI to `BackupFragment` and `fragment_backup.xml`
-    - `[x]` Update documentation with Google Cloud Console setup
     - `[x]` Verification

@@ -80,16 +80,57 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
+    <!-- Progress Section -->
+    <com.google.android.material.progressindicator.LinearProgressIndicator
+        android:id="@+id/progress_backup"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:visibility="gone"
+        app:layout_constraintTop_toBottomOf="@id/btn_start_backup"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        tools:visibility="visible"
+        tools:progress="60" />
+
+    <TextView
+        android:id="@+id/txt_progress_count"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:textAppearance="?attr/textAppearanceBodySmall"
+        android:visibility="gone"
+        app:layout_constraintTop_toBottomOf="@id/progress_backup"
+        app:layout_constraintStart_toStartOf="parent"
+        tools:text="Uploading 3 of 10 files"
+        tools:visibility="visible" />
+
+    <TextView
+        android:id="@+id/txt_current_file"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:ellipsize="middle"
+        android:singleLine="true"
+        android:textAppearance="?attr/textAppearanceLabelSmall"
+        android:textColor="?attr/colorOnSurfaceVariant"
+        android:visibility="gone"
+        app:layout_constraintTop_toBottomOf="@id/txt_progress_count"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        tools:text="IMG_20240101_123456.jpg"
+        tools:visibility="visible" />
+
     <!-- Google Login Button -->
     <com.google.android.material.button.MaterialButton
         android:id="@+id/btn_google_login"
         style="@style/Widget.Material3.Button.OutlinedButton"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="12dp"
+        android:layout_marginTop="24dp"
         android:layout_marginEnd="4dp"
         android:text="@string/btn_login_drive"
-        app:layout_constraintTop_toBottomOf="@id/btn_start_backup"
+        app:layout_constraintTop_toBottomOf="@id/txt_current_file"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toStartOf="@+id/btn_test_upload" />
 

@@ -31,3 +31,13 @@ All notable changes to this project will be documented in this file.
 - **File Upload Engine**: Robust upload mechanism with parents-folder targeting.
 - **Test Dashboard Features**: Added Login and "Test Upload" buttons to the main dashboard for end-to-end verification.
 - **Infrastructure Docs**: Added detailed Google Cloud Console setup guide.
+
+## [0.4.0] - 2026-07-16 13:15
+
+### Added
+- **Full Backup Orchestration**: Implemented `RunBackupUseCase` to coordinate the entire backup flow (Scan -> Folder Creation -> Upload).
+- **Progress Tracking Engine**: Integrated real-time progress updates using Kotlin `Flow`.
+- **Fault-Tolerant Uploads**: Added per-file retry logic (3 attempts) with linear backoff.
+- **Enhanced Dashboard UI**: Added a Material3 `LinearProgressIndicator`, progress counters, and current-file labels.
+- **Detailed Audit Logging**: Success (`✅`) and Failure (`❌`) indicators for every file in the activity logs.
+- **Architecture Documentation**: Added a Mermaid sequence diagram for the backup orchestration layer.

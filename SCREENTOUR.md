@@ -10,12 +10,19 @@ This document gives an overview of the screens configured in the initial scaffol
   - **Header Toolbar**: App title "WABackupPro".
   - **Status Card**: Employs a cloud indicator showing states like "No backup run yet", "Backup in progress...", or "Backup complete".
   - **Action Button**: Large "Start Backup Now" button.
+  - **Progress Indicators**: 
+    - **Linear Progress Bar**: Animates as files are uploaded.
+    - **Status Labels**: Shows "Uploading X of Y files" and the name of the current file (e.g., `msgstore.db.crypt14`).
   - **Auth & Test Row**: 
     - **Login to Drive**: Triggers the Google Sign-In overlay. Changes to "Sign Out (email)" once authenticated.
     - **Test Upload**: Enabled only after login. Uploads a dummy file to verify end-to-end connectivity.
-  - **Logs Section**: Displays real-time progress, including Folder IDs and File IDs upon successful Drive operations.
+  - **Logs Section**: Displays real-time progress, including success (`✅`) or failure (`❌`) badges for every file.
 
-### 2. Google Sign-In
+### 2. Backup Progress Screen
+- **Real-time Updates**: The screen remains active during the backup process, providing visual feedback of the upload queue.
+- **Background Persistence**: If the user leaves the screen, the progress bar state is maintained by the `MainViewModel`.
+
+### 3. Google Sign-In
 - **Overlay**: The standard system-provided Google Account picker.
 - **Scopes Request**: Clearly informs the user that the app wants to "See, edit, create, and delete only the specific Google Drive files you use with this app."
 

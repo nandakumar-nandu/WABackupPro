@@ -51,6 +51,38 @@ graph TD
     UserResponse -- PermDenied --> SettingsSnack[Show Settings Link]
 ```
 
+### Full Backup Orchestration Sequence
+```mermaid
+sequenceDiagram
+    participant User
+    participant VM as MainViewModel
+    participant UC as RunBackupUseCase
+    participant FS as FileScanner
+    participant DC as DriveClient
+    participant MS as MediaStore / Drive API
+
+    User->>VM: Click "Start Backup"
+    VM->>UC: execute(account)
+    UC->>FS: scanWhatsAppBusinessFiles()
+    FS->>MS: Query MediaStore
+    MS-->>FS: File List
+    FS-->>UC: List<BackupFile>
+    UC->>DC: createFolder("WABackup_YYYY-MM-DD")
+    DC->>MS: Drive API (POST Folder)
+    MS-->>DC: folderId
+    DC-->>UC: folderId
+    loop For each file
+        UC->>DC: uploadFile(file, folderId)
+        DC->>MS: Drive API (POST File)
+        MS-->>DC: fileId (Success/Retry)
+        DC-->>UC: progressUpdate()
+        UC-->>VM: Emit(BackupProgress)
+        VM-->>User: Update UI Progress Bar
+    end
+    UC-->>VM: emit(Complete)
+    VM-->>User: Show Success Notification
+```
+
 ## Setup Prerequisites
 
 To set up and run this application locally, you will need:
