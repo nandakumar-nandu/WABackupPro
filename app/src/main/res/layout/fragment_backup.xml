@@ -80,17 +80,43 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
+    <!-- Google Login Button -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btn_google_login"
+        style="@style/Widget.Material3.Button.OutlinedButton"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:layout_marginEnd="4dp"
+        android:text="@string/btn_login_drive"
+        app:layout_constraintTop_toBottomOf="@id/btn_start_backup"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/btn_test_upload" />
+
+    <!-- Test Upload Button -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btn_test_upload"
+        style="@style/Widget.Material3.Button.OutlinedButton"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:layout_marginStart="4dp"
+        android:text="@string/btn_test_upload"
+        app:layout_constraintTop_toBottomOf="@id/btn_start_backup"
+        app:layout_constraintStart_toEndOf="@id/btn_google_login"
+        app:layout_constraintEnd_toEndOf="parent" />
+
     <!-- Activity Log Header -->
     <TextView
         android:id="@+id/txt_logs_header"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="32dp"
+        android:layout_marginTop="24dp"
         android:text="@string/recent_logs_title"
         android:textAppearance="?attr/textAppearanceTitleLarge"
         android:textColor="?attr/colorOnBackground"
         android:textStyle="bold"
-        app:layout_constraintTop_toBottomOf="@id/btn_start_backup"
+        app:layout_constraintTop_toBottomOf="@id/btn_google_login"
         app:layout_constraintStart_toStartOf="parent" />
 
     <!-- Logs RecyclerView -->

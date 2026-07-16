@@ -21,3 +21,13 @@ All notable changes to this project will be documented in this file.
 - **Scoped Storage Permissions**: Added robust handling for storage permissions across Android versions, including Android 13+ granular media permissions.
 - **Permission UX**: Implemented rationale dialogs and settings deep-links for a graceful user experience.
 - **Real-time Feedback**: Updated the dashboard to display the count of discovered files during a scan.
+
+## [0.3.0] - 2026-07-16 12:45
+
+### Added
+- **Google Drive Integration**: Implemented `DriveClient` using the Google Drive REST API.
+- **OAuth 2.0 Authentication**: Integrated Google Sign-In with minimal `DRIVE_FILE` scope.
+- **Folder Management**: Logic to create and identify backup folders in Drive.
+- **File Upload Engine**: Robust upload mechanism with parents-folder targeting.
+- **Test Dashboard Features**: Added Login and "Test Upload" buttons to the main dashboard for end-to-end verification.
+- **Infrastructure Docs**: Added detailed Google Cloud Console setup guide.

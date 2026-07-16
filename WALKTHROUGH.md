@@ -9,6 +9,19 @@ WhatsApp Business stores message databases and media locally on devices. While W
 
 This app bridges this gap by offering a dedicated background scheduler that runs silently in the background, monitors WhatsApp database updates, and sends them to Google Drive.
 
+## Google Drive Setup (Implementation)
+
+The application uses the **Google Drive REST API v3** combined with **Google Play Services Auth**.
+
+1. **Authentication (Least Privilege)**:
+   - The app requests the `https://www.googleapis.com/auth/drive.file` scope.
+   - **Why?** This scope provides access only to files and folders created or opened by the app itself. It prevents the app from seeing the user's personal documents, adhering to the principle of least privilege.
+2. **Folder Creation**:
+   - On the first backup or test run, the app checks for/creates a dedicated folder (e.g., `WABackup_Test` or `WABackupPro_Backups`).
+3. **Resilient Uploads**:
+   - Files are uploaded using `FileContent`, which handles the binary stream efficiently.
+   - Every upload is logged in the `Activity Logs` with its unique Drive File ID for auditing.
+
 ## How the backup works (Planned Mechanism)
 
 1. **Scheduling**:

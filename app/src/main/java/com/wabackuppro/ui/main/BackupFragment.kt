@@ -1,6 +1,7 @@
 package com.wabackuppro.ui.main
 
 import android.Manifest
+import android.app.Activity
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
@@ -16,6 +17,7 @@ import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.material.snackbar.Snackbar
 import com.wabackuppro.R
 import com.wabackuppro.databinding.FragmentBackupBinding
@@ -43,6 +45,21 @@ class BackupFragment : Fragment() {
             viewModel.startBackup()
         } else {
             handlePermissionDenied()
+        }
+    }
+
+    // 🔑 Google Sign-In Launcher
+    private val signInLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            val task = GoogleSignIn.getSignedInAccountFromIntent(result.data)
+            try {
+                val account = task.getResult(Exception::class.java)
+                viewModel.updateAccount(account)
+            } catch (e: Exception) {
+                Snackbar.make(binding.root, "Sign-in failed: ${e.message}", Snackbar.LENGTH_LONG).show()
+            }
         }
     }
 
@@ -74,6 +91,17 @@ class BackupFragment : Fragment() {
             logsAdapter.updateLogs(logs)
         }
 
+        // 🔗 Observe Google account for UI state
+        viewModel.googleAccount.observe(viewLifecycleOwner) { account ->
+            if (account != null) {
+                binding.btnGoogleLogin.text = "Sign Out (${account.email})"
+                binding.btnTestUpload.isEnabled = true
+            } else {
+                binding.btnGoogleLogin.text = getString(R.string.btn_login_drive)
+                binding.btnTestUpload.isEnabled = false
+            }
+        }
+
         // 🔗 Observe file count for UI feedback
         viewModel.discoveredFilesCount.observe(viewLifecycleOwner) { count ->
             if (count > 0) {
@@ -84,6 +112,20 @@ class BackupFragment : Fragment() {
         // 👆 Handle start backup button click
         binding.btnStartBackup.setOnClickListener {
             checkPermissionsAndStart()
+        }
+
+        // 👆 Handle login/logout button click
+        binding.btnGoogleLogin.setOnClickListener {
+            if (viewModel.googleAccount.value == null) {
+                signInLauncher.launch(viewModel.getSignInIntent())
+            } else {
+                viewModel.signOut()
+            }
+        }
+
+        // 👆 Handle test upload button click
+        binding.btnTestUpload.setOnClickListener {
+            viewModel.testUpload()
         }
     }
 

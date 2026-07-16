@@ -6,3 +6,10 @@
     - `[x]` Implement permission handling and UI updates in `BackupFragment`
     - `[x]` Update documentation (`CHANGELOG.md`, `README.md`, `WALKTHROUGH.md`, `SCREENTOUR.md`)
     - `[x]` Verification
+
+- `[x]` **Commit 3: Google Drive API Integration**
+    - `[x]` Implement `DriveClient.kt` with Auth, Folder Creation, and Upload
+    - `[x]` Update `MainViewModel` with Auth state and Test Upload trigger
+    - `[x]` Add Login/Test UI to `BackupFragment` and `fragment_backup.xml`
+    - `[x]` Update documentation with Google Cloud Console setup
+    - `[x]` Verification

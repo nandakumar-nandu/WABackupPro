@@ -59,11 +59,15 @@ To set up and run this application locally, you will need:
 2. **Android SDK**: API level 26 (Android 8.0) minimum, compiled and targeted to API level 34 (Android 14.0).
 3. **Java Development Kit**: JDK 17 (set as Gradle JDK in Android Studio settings).
 4. **Google Cloud Console Setup**:
-   - Go to [Google Cloud Console](https://console.cloud.google.com/).
-   - Create a new project.
-   - Enable the **Google Drive API**.
-   - Configure the **OAuth Consent Screen** (specify User Type as External/Internal, add scope `.../auth/drive.appdata` or `.../auth/drive.file`).
-   - Create **OAuth 2.0 Client IDs** for Android (require SHA-1 signing fingerprint and package name `com.wabackuppro`).
+   - **Step 1: Create Project**: Go to [Google Cloud Console](https://console.cloud.google.com/) and create a project named "WABackupPro".
+   - **Step 2: Enable APIs**: Search for and enable the **Google Drive API**.
+   - **Step 3: Configure Consent Screen**:
+     - Set User Type to **External**.
+     - Add `.../auth/drive.file` scope (allows app to access only files it creates).
+   - **Step 4: Create Credentials**:
+     - Create an **OAuth 2.0 Client ID** for **Android**.
+     - Package name: `com.wabackuppro`.
+     - SHA-1 fingerprint: Obtain via `./gradlew signingReport`.
 5. **Local configuration**:
    - Copy `.env.example` to `.env` and fill in client parameters.
    - Configure local.properties with actual `google.client.id` and `google.client.secret`.

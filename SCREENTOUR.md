@@ -9,10 +9,17 @@ This document gives an overview of the screens configured in the initial scaffol
 - **Visual Structure**:
   - **Header Toolbar**: App title "WABackupPro".
   - **Status Card**: Employs a cloud indicator showing states like "No backup run yet", "Backup in progress...", or "Backup complete".
-  - **Action Button**: Large "Start Backup Now" button. Clicking this triggers the **Permission Flow** followed by a file scan.
-  - **Logs Section**: Displays the results of the file scan, such as "Scanned WhatsApp Business media. Found X files."
+  - **Action Button**: Large "Start Backup Now" button.
+  - **Auth & Test Row**: 
+    - **Login to Drive**: Triggers the Google Sign-In overlay. Changes to "Sign Out (email)" once authenticated.
+    - **Test Upload**: Enabled only after login. Uploads a dummy file to verify end-to-end connectivity.
+  - **Logs Section**: Displays real-time progress, including Folder IDs and File IDs upon successful Drive operations.
 
-### 2. Permissions Flow
+### 2. Google Sign-In
+- **Overlay**: The standard system-provided Google Account picker.
+- **Scopes Request**: Clearly informs the user that the app wants to "See, edit, create, and delete only the specific Google Drive files you use with this app."
+
+### 3. Permissions Flow
 - **Rationale Dialog**: An `AlertDialog` that appears if the user previously denied permissions, explaining why access to media is required.
 - **System Prompt**: The standard Android permission request dialog.
 - **Denied Message**: A `Snackbar` with a "Settings" button that appears if permissions are permanently denied, allowing users to manually enable them.
