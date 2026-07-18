@@ -51,6 +51,21 @@ graph TD
     SaveFailedRecord --> NotifyFail[Notify User]
 ```
 
+### Room Database Entity-Relationship (ER) Diagram
+```mermaid
+erDiagram
+    BACKUP_RECORDS {
+        Long id PK "Auto-generated primary key"
+        Long timestamp "Unix epoch in milliseconds"
+        String folderName "Drive folder name"
+        Int totalFiles "Total queued files"
+        Int successCount "Successfully uploaded files"
+        Int failCount "Failed files"
+        String driveFolderLink "Web link to Drive folder"
+        Long durationSeconds "Total backup time"
+    }
+```
+
 ### Permission Request Flow
 ```mermaid
 graph TD

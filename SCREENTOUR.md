@@ -39,17 +39,21 @@ This document gives an overview of the screens configured in the initial scaffol
 - **Denied Message**: A `Snackbar` with a "Settings" button that appears if permissions are permanently denied, allowing users to manually enable them.
 
 ### 2. Backup History Screen
-- **Purpose**: Displays a list of all past backups (both successful and failed runs) retrieved from the local Room database.
+- **Purpose**: Displays a comprehensive, chronological list of all past backups retrieved from the local Room database.
 - **Visual Structure**:
-  - Paged list showing timestamp, backup file size, status badge (Success/Failure in color coding), and elapsed upload time.
+  - **RecyclerView**: A scrollable list displaying individual cards for each backup job.
+  - **Record Card**: Shows the formatted timestamp (e.g., Jul 18, 2026), file processing metrics (Success: 150, Failed: 0), and total upload duration.
+  - **Status Badge**: Visually indicates outcome with color coding (Green for SUCCESS/PARTIAL, Red for FAILED).
+  - **Action Link**: An "Open in Drive" text button that launches a browser or the Drive app to view the backed-up files.
 
 ### 3. Settings Screen
-- **Purpose**: Configuration screen for authentication, constraints, and scheduling.
+- **Purpose**: The configuration hub for authentication, constraints, and scheduling.
 - **Visual Structure**:
-  - **Account Integration**: Google Account authorization/sign-out buttons.
-  - **Frequency Controls**: Dropdown/options for scheduling frequency (e.g., every 6 hours, daily, weekly).
-  - **Network Constraint Switch**: Toggle for "Backup only on Wi-Fi".
-  - **Battery Constraint Switch**: Toggle for "Backup only when charging".
+  - **Schedule Controls**: A labeled row with a button triggering an Android `TimePickerDialog` to set the Friday backup time.
+  - **Network Constraints**: A modern `MaterialSwitch` to enforce Wi-Fi-only uploads.
+  - **History Management**: An inline `EditText` field allowing the user to specify how many days to retain backup history.
+  - **Account Integration**: Displays the currently signed-in Google email address, along with a prominent "Sign Out" button.
+  - **Manual Trigger**: A distinct button at the bottom providing a quick shortcut to "Run Backup Now" without leaving the settings screen.
 
 ## Screen Navigation Map
 

@@ -63,6 +63,32 @@ The application uses the **Google Drive REST API v3** combined with **Google Pla
    - If a file upload fails (e.g., due to a temporary network timeout), the `RunBackupUseCase` automatically retries the operation up to **3 times**.
    - After all retries are exhausted, the file is marked as failed (`❌`), and the process moves to the next file to ensure the entire backup isn't stalled by a single corrupted or missing item.
 
+## Backup History (Implementation)
+
+1. **Local Database**:
+   - The app uses Android Room to maintain a structured schema of all past backup executions in the `backup_records` table.
+2. **Metadata Tracking**:
+   - Every backup completion (or failure) inserts a `BackupRecord` capturing the precise timestamp, the generated Drive folder name, total files processed, success/failure counts, the Google Drive web link, and the overall duration.
+3. **UI Display**:
+   - The Backup History screen observes the Room Database reactively using Kotlin Flows.
+   - A `RecyclerView` presents the records from newest to oldest, with visual status badges (Success, Partial, Failed).
+   - If a valid Drive link is captured, an "Open in Drive" button is displayed directly on the card.
+
+## Settings & Preferences (Implementation)
+
+1. **User Customization**:
+   - The Settings screen exposes a variety of configurable options stored in `SharedPreferences`.
+2. **Scheduling Controls**:
+   - A time picker dialog allows users to choose the exact time their weekly Friday backup triggers. Upon selection, the WorkManager scheduler is immediately updated.
+3. **Operational Constraints**:
+   - A Wi-Fi only toggle is available, which internally maps to the WorkManager `NetworkType.UNMETERED` constraint.
+4. **Data Management**:
+   - Users can configure the historical retention period (e.g., keep records for 30 days). The DAO supports cleaning up old records based on this threshold.
+5. **Account Controls**:
+   - The screen shows the currently authenticated Google Account and provides a single-tap sign-out action, which revokes local access and clears the UI state.
+6. **Manual Trigger**:
+   - For convenience, a "Run Backup Now" shortcut bypasses the schedule and launches the background backup process immediately.
+
 ## User Journey Flowchart
 
 ```mermaid

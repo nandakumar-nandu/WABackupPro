@@ -50,3 +50,11 @@ All notable changes to this project will be documented in this file.
 - **Foreground Service Promotion**: The worker now promotes itself to a Foreground Service with a persistent notification to avoid Doze mode restrictions.
 - **Resilience on Reboot**: Added `BootReceiver` to automatically reschedule WorkManager tasks when the device restarts.
 - **Documentation**: Updated `README.md` with WorkManager flowchart, tech stack badges, and added relevant sections to walkthroughs and tours.
+
+## [0.6.0] - 2026-07-18 13:45
+
+### Added
+- **Local Database Engine**: Integrated Android Room to persist backup metadata (timestamp, files count, success/fail counts, duration) locally across sessions.
+- **Backup History Dashboard**: Converted the history screen into a dynamic `RecyclerView` listing past backups. Features color-coded status badges and direct "Open in Drive" deep links.
+- **Interactive Settings Hub**: Built a comprehensive settings UI with a TimePicker for backup scheduling, Wi-Fi constraints, history retention period, and Google Account management.
+- **Data Schemas**: Implemented `BackupRecord` entity and `BackupRecordDao` to structure and query the historical data efficiently.
