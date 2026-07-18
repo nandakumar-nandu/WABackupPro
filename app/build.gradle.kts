@@ -71,6 +71,12 @@ dependencies {
         exclude(group = "org.apache.httpcomponents")
     }
 
+    // Splash Screen
+    implementation("androidx.core:core-splashscreen:1.0.1")
+    
+    // Razorpay
+    implementation("com.razorpay:checkout:1.6.38")
+
     // Testing
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

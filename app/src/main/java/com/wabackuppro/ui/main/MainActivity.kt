@@ -8,6 +8,7 @@ import com.wabackuppro.R
 import com.wabackuppro.databinding.ActivityMainBinding
 import com.wabackuppro.ui.history.BackupHistoryFragment
 import com.wabackuppro.ui.settings.SettingsFragment
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 
 /**
  * MainActivity is the single activity hosting the main navigation flows:
@@ -19,6 +20,7 @@ class MainActivity : AppCompatActivity() {
     private val viewModel: MainViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        installSplashScreen()
         super.onCreate(savedInstanceState)
         
         // 🛠️ Inflate and bind activity layout

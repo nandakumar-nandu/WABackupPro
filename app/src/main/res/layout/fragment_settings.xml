@@ -1,8 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.microsoft.com/apk/res/android"
-    xmlns:app="http://schemas.google.com/apk/res-auto"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:focusable="true"
+    android:focusableInTouchMode="true"
     android:padding="16dp">
 
     <LinearLayout
@@ -35,6 +37,8 @@
                 style="@style/Widget.Material3.Button.OutlinedButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:focusable="true"
+                android:focusableInTouchMode="true"
                 android:text="02:00 AM" />
         </LinearLayout>
 
@@ -43,6 +47,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Backup on Wi-Fi Only"
+            android:focusable="true"
+            android:focusableInTouchMode="true"
             android:textAppearance="?attr/textAppearanceBodyLarge"
             android:layout_marginBottom="16dp"/>
 
@@ -64,6 +70,8 @@
                 android:layout_height="wrap_content"
                 android:inputType="number"
                 android:text="30"
+                android:focusable="true"
+                android:focusableInTouchMode="true"
                 android:textAlignment="center"/>
         </LinearLayout>
 
@@ -95,13 +103,34 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Sign Out"
+            android:focusable="true"
+            android:focusableInTouchMode="true"
             android:layout_marginBottom="32dp"/>
 
-        <Button
-            android:id="@+id/btn_run_backup_now"
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_about"
+            style="@style/Widget.Material3.Button.TonalButton"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Run Backup Now" />
+            android:layout_height="56dp"
+            android:layout_marginTop="24dp"
+            android:text="About &amp; Developer Support"
+            android:focusable="true"
+            android:focusableInTouchMode="true"
+            app:icon="@android:drawable/ic_menu_info_details" />
+
+        <!-- Manual Trigger Section -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_force_backup"
+            style="@style/Widget.Material3.Button.OutlinedButton"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="32dp"
+            android:text="@string/btn_start_backup"
+            android:focusable="true"
+            android:focusableInTouchMode="true"
+            app:icon="@drawable/ic_backup" />
 
     </LinearLayout>
 </ScrollView>
+

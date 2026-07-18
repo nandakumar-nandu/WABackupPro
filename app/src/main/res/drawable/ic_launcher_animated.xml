@@ -1,0 +1,14 @@
+<animated-vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:drawable="@drawable/ic_launcher_foreground">
+    <target android:name="cloud_path">
+        <aapt:attr name="android:animation" xmlns:aapt="http://schemas.android.com/aapt">
+            <objectAnimator
+                android:propertyName="trimPathEnd"
+                android:duration="800"
+                android:valueFrom="0"
+                android:valueTo="1"
+                android:valueType="floatType"
+                android:interpolator="@android:anim/accelerate_decelerate_interpolator"/>
+        </aapt:attr>
+    </target>
+</animated-vector>

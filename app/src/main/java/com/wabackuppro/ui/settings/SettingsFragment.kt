@@ -2,6 +2,7 @@ package com.wabackuppro.ui.settings
 
 import android.app.TimePickerDialog
 import android.content.Context
+import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -9,13 +10,18 @@ import android.view.ViewGroup
 import android.widget.Button
 import android.widget.EditText
 import android.widget.TextView
+import android.widget.Toast
 import androidx.core.widget.doAfterTextChanged
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkManager
 import com.google.android.material.materialswitch.MaterialSwitch
 import com.wabackuppro.R
+import com.wabackuppro.ui.about.AboutActivity
 import com.wabackuppro.ui.main.MainViewModel
 import com.wabackuppro.utils.BackupScheduler
+import com.wabackuppro.workers.BackupWorker
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 import java.util.Locale
@@ -47,7 +53,8 @@ class SettingsFragment : Fragment() {
         val etHistoryDays: EditText = view.findViewById(R.id.et_history_days)
         val txtAccountEmail: TextView = view.findViewById(R.id.txt_account_email)
         val btnSignOut: Button = view.findViewById(R.id.btn_sign_out)
-        val btnRunBackupNow: Button = view.findViewById(R.id.btn_run_backup_now)
+        val btnForceBackup: Button = view.findViewById(R.id.btn_force_backup)
+        val btnAbout: Button = view.findViewById(R.id.btn_about)
 
         val prefs = requireContext().getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 
@@ -79,8 +86,6 @@ class SettingsFragment : Fragment() {
         // Wi-Fi Only Logic
         switchWifiOnly.setOnCheckedChangeListener { _, isChecked ->
             prefs.edit().putBoolean(PREF_WIFI_ONLY, isChecked).apply()
-            // In a full app, you would reschedule the BackupScheduler here as well 
-            // to update constraints.
         }
 
         // History Days Logic
@@ -104,9 +109,15 @@ class SettingsFragment : Fragment() {
             viewModel.signOut()
         }
 
-        btnRunBackupNow.setOnClickListener {
-            viewModel.startBackup()
-            // Optionally navigate back to Dashboard
+        btnForceBackup.setOnClickListener {
+            // Shortcut to trigger the backup worker immediately
+            val workRequest = OneTimeWorkRequestBuilder<BackupWorker>().build()
+            WorkManager.getInstance(requireContext()).enqueue(workRequest)
+            Toast.makeText(requireContext(), "Backup triggered manually.", Toast.LENGTH_SHORT).show()
+        }
+
+        btnAbout.setOnClickListener {
+            startActivity(Intent(requireContext(), AboutActivity::class.java))
         }
 
         return view
