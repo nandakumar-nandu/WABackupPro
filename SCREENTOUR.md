@@ -22,7 +22,14 @@ This document gives an overview of the screens configured in the initial scaffol
 - **Real-time Updates**: The screen remains active during the backup process, providing visual feedback of the upload queue.
 - **Background Persistence**: If the user leaves the screen, the progress bar state is maintained by the `MainViewModel`.
 
-### 3. Google Sign-In
+### 3. Backup Notification (Foreground Service)
+- **Purpose**: Shown automatically when a scheduled WorkManager background backup is executing.
+- **Visual Structure**:
+  - **Ongoing Badge**: The notification is persistent and cannot be swiped away while the backup is active.
+  - **Progress Information**: Displays the current status of the upload (e.g. "Uploading msgstore.db.crypt14 (2 of 5)...").
+  - **Service Priority**: Elevates the background worker to avoid being terminated by OS battery optimizations (Doze mode).
+
+### 4. Google Sign-In
 - **Overlay**: The standard system-provided Google Account picker.
 - **Scopes Request**: Clearly informs the user that the app wants to "See, edit, create, and delete only the specific Google Drive files you use with this app."
 

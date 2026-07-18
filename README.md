@@ -1,5 +1,7 @@
 # WABackupPro
 
+![Kotlin](https://img.shields.io/badge/kotlin-%237F52FF.svg?style=for-the-badge&logo=kotlin&logoColor=white) ![Android](https://img.shields.io/badge/Android-3DDC84?style=for-the-badge&logo=android&logoColor=white) ![Google Drive API](https://img.shields.io/badge/Google%20Drive-4285F4?style=for-the-badge&logo=googledrive&logoColor=white) ![WorkManager](https://img.shields.io/badge/WorkManager-v2.9.0-green?style=for-the-badge) ![Room](https://img.shields.io/badge/Room-v2.6.1-blue?style=for-the-badge)
+
 Automated background backups of WhatsApp Business databases and files to Google Drive.
 
 ## App Concept
@@ -18,6 +20,19 @@ graph TD
     Repo -->|Queries / Inserts| Local["Local Database<br>(Room Database / SQLite)"]
     Repo -->|Uploads / Authenticates| Remote["Remote Storage API<br>(Google Drive Client)"]
     Workers["WorkManager Background Job<br>(BackupWorker)"] -->|Triggers| UC
+```
+
+### Automatic WorkManager Scheduling Flow
+```mermaid
+graph TD
+    Boot[Device Boot or App Launch] --> Schedule{BackupScheduler}
+    Schedule -->|Calculate delay to Friday| Enqueue[PeriodicWorkRequest]
+    Enqueue --> WM((WorkManager Engine))
+    WM --> Constraint{Check Constraints<br/>(Wi-Fi, Battery)}
+    Constraint -- Not Met --> Waiting[Wait for conditions]
+    Constraint -- Met --> Worker[BackupWorker runs]
+    Worker --> Foreground[Promote to Foreground Service]
+    Foreground --> UseCase[RunBackupUseCase executes]
 ```
 
 ### Backup Workflow Flowchart

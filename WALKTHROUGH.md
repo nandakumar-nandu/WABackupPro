@@ -22,6 +22,17 @@ The application uses the **Google Drive REST API v3** combined with **Google Pla
    - Files are uploaded using `FileContent`, which handles the binary stream efficiently.
    - Every upload is logged in the `Activity Logs` with its unique Drive File ID for auditing.
 
+## Automatic Scheduling (Implementation)
+
+1. **WorkManager Initialization**:
+   - Background scheduling is managed by the `BackupScheduler` utility. When the user sets a weekly backup (e.g. every Friday), the scheduler calculates the exact delay until the next upcoming Friday at the chosen time.
+2. **Periodic Constraints**:
+   - The backup job is queued as a `PeriodicWorkRequest` running every 7 days. It respects OS constraints by running only when the device is connected to Wi-Fi (`NetworkType.UNMETERED`) and the battery is not low.
+3. **Foreground Service Promotion**:
+   - Because WhatsApp backups can be large and take longer than the 10-minute WorkManager background limit, the `BackupWorker` immediately promotes itself to a Foreground Service (`setForeground()`). This gives the app a higher priority execution state and shows a persistent notification.
+4. **Boot Resilience**:
+   - A `BootReceiver` is registered to listen for `ACTION_BOOT_COMPLETED`. If the device is restarted, it instantly reschedules the WorkManager task so the user doesn't miss their scheduled Friday backup.
+
 ## How the backup works (Planned Mechanism)
 
 1. **Scheduling**:

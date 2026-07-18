@@ -41,3 +41,12 @@ All notable changes to this project will be documented in this file.
 - **Enhanced Dashboard UI**: Added a Material3 `LinearProgressIndicator`, progress counters, and current-file labels.
 - **Detailed Audit Logging**: Success (`✅`) and Failure (`❌`) indicators for every file in the activity logs.
 - **Architecture Documentation**: Added a Mermaid sequence diagram for the backup orchestration layer.
+
+## [0.5.0] - 2026-07-18 12:45
+
+### Added
+- **Automatic Background Scheduling**: Implemented `BackupScheduler` to schedule recurring backups every Friday.
+- **WorkManager Integration**: Upgraded `BackupWorker` to a `CoroutineWorker` that runs `RunBackupUseCase` seamlessly in the background.
+- **Foreground Service Promotion**: The worker now promotes itself to a Foreground Service with a persistent notification to avoid Doze mode restrictions.
+- **Resilience on Reboot**: Added `BootReceiver` to automatically reschedule WorkManager tasks when the device restarts.
+- **Documentation**: Updated `README.md` with WorkManager flowchart, tech stack badges, and added relevant sections to walkthroughs and tours.
