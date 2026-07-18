@@ -117,19 +117,38 @@ sequenceDiagram
 
 To set up and run this application locally, you will need:
 
-1. **Android Studio**: Android Studio Hedgehog (2023.1.1) or newer.
+1. **Android Studio**: Android Studio Iguana (2023.2.1) or newer.
 2. **Android SDK**: API level 26 (Android 8.0) minimum, compiled and targeted to API level 34 (Android 14.0).
 3. **Java Development Kit**: JDK 17 (set as Gradle JDK in Android Studio settings).
-4. **Google Cloud Console Setup**:
-   - **Step 1: Create Project**: Go to [Google Cloud Console](https://console.cloud.google.com/) and create a project named "WABackupPro".
-   - **Step 2: Enable APIs**: Search for and enable the **Google Drive API**.
-   - **Step 3: Configure Consent Screen**:
-     - Set User Type to **External**.
-     - Add `.../auth/drive.file` scope (allows app to access only files it creates).
-   - **Step 4: Create Credentials**:
-     - Create an **OAuth 2.0 Client ID** for **Android**.
-     - Package name: `com.wabackuppro`.
-     - SHA-1 fingerprint: Obtain via `./gradlew signingReport`.
-5. **Local configuration**:
-   - Copy `.env.example` to `.env` and fill in client parameters.
-   - Configure local.properties with actual `google.client.id` and `google.client.secret`.
+
+### 1. Google Cloud Console Setup
+To enable Google Sign-In and Google Drive API integration:
+1. Go to the [Google Cloud Console](https://console.cloud.google.com/).
+2. Create a new Project (e.g., "WABackupPro").
+3. Navigate to **APIs & Services > Library**.
+4. Search for **Google Drive API** and click **Enable**.
+5. Navigate to **APIs & Services > OAuth consent screen**.
+   - Set User Type to **External**.
+   - Add `.../auth/drive.file` scope (allows app to access only files it creates).
+6. Navigate to **APIs & Services > Credentials**.
+7. Click **Create Credentials** > **OAuth client ID**.
+8. Select **Android** as the application type.
+9. Enter your package name (`com.wabackuppro`) and your debug/release **SHA-1 certificate fingerprint**.
+10. *(Optional for Web/Backend)* Create another OAuth client ID of type **Web application** and copy the Client ID. Place this in your `local.properties` file as `google.web.client.id`.
+
+### 2. Local Environment Setup
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/nandakumar-nandu/WABackupPro.git
+   ```
+2. Create a `local.properties` file in the root project directory (use `local.properties.example` as a reference):
+   ```properties
+   google.web.client.id=YOUR_WEB_CLIENT_ID_HERE
+   ```
+3. Copy `.env.example` to `.env` if you need to configure additional runtime variables.
+4. Sync Gradle and build the project in Android Studio.
+
+## Contribution
+
+This project is fully built and maintained. 🚀 
+To report issues or suggest features, feel free to open a GitHub Issue!

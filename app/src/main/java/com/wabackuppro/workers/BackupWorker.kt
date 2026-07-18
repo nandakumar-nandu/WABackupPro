@@ -60,11 +60,15 @@ class BackupWorker(
                     isSuccess = false
                 }
             }
+        } catch (e: java.io.IOException) {
+            // 📶 Edge Case: Network lost mid-backup
+            // Strategy: Catch IOException thrown by the UseCase and return Result.retry() 
+            // so WorkManager will pause and resume the job when constraints (Network) are met again.
+            e.printStackTrace()
+            return Result.retry()
         } catch (e: Exception) {
             e.printStackTrace()
-            // If it's a retriable error (e.g. network lost), we could return Result.retry()
-            // Here we assume unexpected exceptions should just fail or retry
-            return Result.retry()
+            return Result.failure()
         }
 
         return if (isSuccess) Result.success() else Result.failure()

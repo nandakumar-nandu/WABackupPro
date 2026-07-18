@@ -83,15 +83,26 @@ class BackupFragment : Fragment() {
 
         // 🔗 Observe backup status messages
         viewModel.backupStatus.observe(viewLifecycleOwner) { status ->
+            android.transition.TransitionManager.beginDelayedTransition(binding.cardBackupStatus)
             binding.txtStatusPlaceholder.text = status
+            
+            // Check if status contains an error, if so, show retry
+            if (status.contains("Error", ignoreCase = true) || status.contains("Failed", ignoreCase = true) || status.contains("expired", ignoreCase = true) || status.contains("halted", ignoreCase = true)) {
+                binding.btnRetryBackup.visibility = View.VISIBLE
+                binding.btnStartBackup.visibility = View.GONE
+            } else {
+                binding.btnRetryBackup.visibility = View.GONE
+            }
         }
 
         // 🔗 Observe backup progress updates
         viewModel.backupProgress.observe(viewLifecycleOwner) { progress ->
+            android.transition.TransitionManager.beginDelayedTransition(binding.root as ViewGroup)
             if (progress != null && progress.totalFiles > 0) {
                 binding.progressBackup.visibility = View.VISIBLE
                 binding.txtProgressCount.visibility = View.VISIBLE
                 binding.txtCurrentFile.visibility = View.VISIBLE
+                binding.btnStartBackup.isEnabled = false
 
                 binding.progressBackup.max = progress.totalFiles
                 binding.progressBackup.progress = progress.uploadedFiles
@@ -102,6 +113,7 @@ class BackupFragment : Fragment() {
                 binding.progressBackup.visibility = View.GONE
                 binding.txtProgressCount.visibility = View.GONE
                 binding.txtCurrentFile.visibility = View.GONE
+                binding.btnStartBackup.isEnabled = true
             }
         }
 
@@ -130,6 +142,13 @@ class BackupFragment : Fragment() {
 
         // 👆 Handle start backup button click
         binding.btnStartBackup.setOnClickListener {
+            checkPermissionsAndStart()
+        }
+
+        // 👆 Handle retry backup button click
+        binding.btnRetryBackup.setOnClickListener {
+            binding.btnRetryBackup.visibility = View.GONE
+            binding.btnStartBackup.visibility = View.VISIBLE
             checkPermissionsAndStart()
         }
 

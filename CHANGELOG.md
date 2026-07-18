@@ -58,3 +58,18 @@ All notable changes to this project will be documented in this file.
 - **Backup History Dashboard**: Converted the history screen into a dynamic `RecyclerView` listing past backups. Features color-coded status badges and direct "Open in Drive" deep links.
 - **Interactive Settings Hub**: Built a comprehensive settings UI with a TimePicker for backup scheduling, Wi-Fi constraints, history retention period, and Google Account management.
 - **Data Schemas**: Implemented `BackupRecord` entity and `BackupRecordDao` to structure and query the historical data efficiently.
+
+## [1.0.0] - 2026-07-18 15:30
+
+### Added
+- **Edge Case Resilience**: 
+  - Catches quota exceeded exceptions (`DriveStorageFullException`) and pauses cleanly with an actionable warning.
+  - Detects network drops mid-backup (`IOException`) and intelligently tells WorkManager to pause and resume once network is restored.
+  - Automatically identifies expired OAuth tokens and flags the UI for re-authentication (`AuthExpiredException`).
+  - Gracefully handles empty WhatsApp folders (`NoFilesFoundException`) with a friendly notification rather than an obscure error.
+- **UI Polish**:
+  - Introduced Material3 `TransitionManager` animations, ensuring smooth expansion and collapse when status cards update.
+  - Added a responsive "Retry Backup" button for immediate recovery when operations halt.
+  - Shipped a high-resolution Vector Drawable app icon for launcher screens.
+- **Environment Templates**: Added fully documented `.env.example` and `local.properties.example` detailing exact Google Cloud console setup procedures.
+- **Documentation Complete**: Finalized `README.md`, `WALKTHROUGH.md`, and `SCREENTOUR.md`. Eliminated all placeholder construction markers. The app is 1.0.0 ready.

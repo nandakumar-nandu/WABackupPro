@@ -89,6 +89,17 @@ The application uses the **Google Drive REST API v3** combined with **Google Pla
 6. **Manual Trigger**:
    - For convenience, a "Run Backup Now" shortcut bypasses the schedule and launches the background backup process immediately.
 
+## Resilience & Edge Case Handling (v1.0.0)
+
+1. **Drive Quota Exceeded**: 
+   - Upload requests returning a `403` or `quotaExceeded` are caught instantly. The UI notifies the user that their Drive is full without attempting futile retries.
+2. **Network Drops**: 
+   - A standard `IOException` during background upload is bubbled up to WorkManager as `Result.retry()`. WorkManager halts the backup and seamlessly resumes it once the network constraint (Wi-Fi) is satisfied again.
+3. **Authentication Expiry**: 
+   - If the OAuth token expires (`401 Unauthorized`), the UseCase flags it via an `AuthExpiredException`. The UI catches this state and provides a clear "Retry Backup" button, prompting the user to sign in again if necessary.
+4. **No Files Found**:
+   - If the scanner finds an empty WhatsApp directory, the UseCase emits a `NoFilesFoundException` with a friendly user-facing message instead of proceeding with an empty folder creation on Drive.
+
 ## User Journey Flowchart
 
 ```mermaid
@@ -106,3 +117,6 @@ journey
       Receive push notification of backup: 5: App
       Check dashboard audit logs: 4: User
 ```
+
+---
+**This marks the complete v1.0.0 architectural walkthrough of WABackupPro! 🚀**

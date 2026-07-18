@@ -1,15 +1,16 @@
 # Screen Tour: WABackupPro
 
-This document gives an overview of the screens configured in the initial scaffolding of WABackupPro.
+This document gives an overview of the screens configured in WABackupPro version 1.0.0.
 
-## Planned Screens
+## Complete Screens
 
 ### 1. Backup Dashboard (Main Screen)
 - **Purpose**: Displays the status of the automated backup service, shows the date of the last run, and provides a manual trigger button.
 - **Visual Structure**:
   - **Header Toolbar**: App title "WABackupPro".
-  - **Status Card**: Employs a cloud indicator showing states like "No backup run yet", "Backup in progress...", or "Backup complete".
+  - **Status Card**: Employs a cloud indicator showing states like "No backup run yet", "Backup in progress...", or "Backup complete". Now includes Material3 animations for smooth transitions.
   - **Action Button**: Large "Start Backup Now" button.
+  - **Retry Button**: Appears in red if the backup halts due to an error (e.g. Quota Exceeded or Auth Expired).
   - **Progress Indicators**: 
     - **Linear Progress Bar**: Animates as files are uploaded.
     - **Status Labels**: Shows "Uploading X of Y files" and the name of the current file (e.g., `msgstore.db.crypt14`).
@@ -18,9 +19,12 @@ This document gives an overview of the screens configured in the initial scaffol
     - **Test Upload**: Enabled only after login. Uploads a dummy file to verify end-to-end connectivity.
   - **Logs Section**: Displays real-time progress, including success (`✅`) or failure (`❌`) badges for every file.
 
-### 2. Backup Progress Screen
-- **Real-time Updates**: The screen remains active during the backup process, providing visual feedback of the upload queue.
-- **Background Persistence**: If the user leaves the screen, the progress bar state is maintained by the `MainViewModel`.
+### 2. Google Sign-In & Permissions Flow
+- **Overlay**: The standard system-provided Google Account picker.
+- **Scopes Request**: Clearly informs the user that the app wants to "See, edit, create, and delete only the specific Google Drive files you use with this app."
+- **Rationale Dialog**: An `AlertDialog` that appears if the user previously denied permissions, explaining why access to media is required.
+- **System Prompt**: The standard Android permission request dialog.
+- **Denied Message**: A `Snackbar` with a "Settings" button that appears if permissions are permanently denied, allowing users to manually enable them.
 
 ### 3. Backup Notification (Foreground Service)
 - **Purpose**: Shown automatically when a scheduled WorkManager background backup is executing.
@@ -29,16 +33,7 @@ This document gives an overview of the screens configured in the initial scaffol
   - **Progress Information**: Displays the current status of the upload (e.g. "Uploading msgstore.db.crypt14 (2 of 5)...").
   - **Service Priority**: Elevates the background worker to avoid being terminated by OS battery optimizations (Doze mode).
 
-### 4. Google Sign-In
-- **Overlay**: The standard system-provided Google Account picker.
-- **Scopes Request**: Clearly informs the user that the app wants to "See, edit, create, and delete only the specific Google Drive files you use with this app."
-
-### 3. Permissions Flow
-- **Rationale Dialog**: An `AlertDialog` that appears if the user previously denied permissions, explaining why access to media is required.
-- **System Prompt**: The standard Android permission request dialog.
-- **Denied Message**: A `Snackbar` with a "Settings" button that appears if permissions are permanently denied, allowing users to manually enable them.
-
-### 2. Backup History Screen
+### 4. Backup History Screen
 - **Purpose**: Displays a comprehensive, chronological list of all past backups retrieved from the local Room database.
 - **Visual Structure**:
   - **RecyclerView**: A scrollable list displaying individual cards for each backup job.
@@ -46,7 +41,7 @@ This document gives an overview of the screens configured in the initial scaffol
   - **Status Badge**: Visually indicates outcome with color coding (Green for SUCCESS/PARTIAL, Red for FAILED).
   - **Action Link**: An "Open in Drive" text button that launches a browser or the Drive app to view the backed-up files.
 
-### 3. Settings Screen
+### 5. Settings Screen
 - **Purpose**: The configuration hub for authentication, constraints, and scheduling.
 - **Visual Structure**:
   - **Schedule Controls**: A labeled row with a button triggering an Android `TimePickerDialog` to set the Friday backup time.
@@ -65,5 +60,6 @@ graph TD
     MainActivity -->|Select Tab 3| SettingsFragment[Settings Configuration]
     
     BackupFragment -->|Click Start Backup| LogView[ViewModel Updates Logs List]
+    BackupFragment -->|Drive Quota Full / Network Error| RetryButton[Show Retry Button]
     SettingsFragment -->|Click Login| GoogleConsent[Google OAuth Consent Flow]
 ```

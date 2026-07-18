@@ -7,8 +7,14 @@ import com.wabackuppro.utils.FileScanner
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
+import java.io.IOException
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
+
+// Custom Edge Case Exceptions
+class NoFilesFoundException(message: String) : Exception(message)
+class DriveStorageFullException(message: String) : Exception(message)
+class AuthExpiredException(message: String) : Exception(message)
 
 /**
  * RunBackupUseCase orchestrates the full backup workflow.
@@ -29,13 +35,14 @@ class RunBackupUseCase(
         val errors = mutableListOf<String>()
         emit(BackupProgress(status = "Initializing backup..."))
 
-        // 🔍 Step 1: Scan all WhatsApp Business files
+        // 🔍 Edge Case: No WhatsApp Business files found
+        // Strategy: Catch empty list immediately and emit a friendly message, then terminate.
         emit(BackupProgress(status = "Scanning files..."))
         val files = fileScanner.scanWhatsAppBusinessFiles()
         val totalFiles = files.size
         
         if (totalFiles == 0) {
-            emit(BackupProgress(status = "No files found to backup.", totalFiles = 0))
+            emit(BackupProgress(status = "No WhatsApp Business files found to backup. Ensure WhatsApp Business is installed.", totalFiles = 0, errors = listOf("NoFilesFoundException")))
             return@flow
         }
 
@@ -46,12 +53,18 @@ class RunBackupUseCase(
         val folderId = try {
             driveClient.createFolder(account, folderName)
         } catch (e: Exception) {
-            emit(BackupProgress(status = "Failed to create folder: ${e.message}", totalFiles = totalFiles))
+            // 🔐 Edge Case: Drive auth expired
+            // Strategy: Detect auth failure and request silent sign-in re-trigger via the UI/Worker.
+            if (e.message?.contains("401") == true || e.message?.contains("Unauthorized") == true) {
+                emit(BackupProgress(status = "Authentication expired. Please sign in again.", totalFiles = totalFiles, errors = listOf("AuthExpiredException")))
+            } else {
+                emit(BackupProgress(status = "Failed to create folder: ${e.message}", totalFiles = totalFiles, errors = listOf(e.message ?: "Unknown Error")))
+            }
             return@flow
         }
 
         if (folderId == null) {
-            emit(BackupProgress(status = "Error: Folder creation returned null ID", totalFiles = totalFiles))
+            emit(BackupProgress(status = "Error: Folder creation returned null ID", totalFiles = totalFiles, errors = listOf("Folder ID null")))
             return@flow
         }
 
@@ -67,19 +80,38 @@ class RunBackupUseCase(
                 errors = errors
             ))
 
-            val success = uploadWithRetry(account, file.path, folderId, file.type, maxAttempts = 3)
-            
-            if (!success) {
-                errors.add("Failed to upload: ${file.name}")
-            }
+            try {
+                val success = uploadWithRetry(account, file.path, folderId, file.type, maxAttempts = 3)
+                
+                if (!success) {
+                    errors.add("Failed to upload: ${file.name}")
+                }
 
-            emit(BackupProgress(
-                totalFiles = totalFiles,
-                uploadedFiles = if (success) uploadedCount else uploadedCount - 1,
-                currentFileName = file.name,
-                status = if (success) "Uploaded ${file.name}" else "Failed to upload ${file.name}",
-                errors = errors.toList()
-            ))
+                emit(BackupProgress(
+                    totalFiles = totalFiles,
+                    uploadedFiles = if (success) uploadedCount else uploadedCount - 1,
+                    currentFileName = file.name,
+                    status = if (success) "Uploaded ${file.name}" else "Failed to upload ${file.name}",
+                    errors = errors.toList()
+                ))
+            } catch (e: DriveStorageFullException) {
+                // 💾 Edge Case: No Drive storage space
+                // Strategy: Catch specific storage full exception, halt backup, and warn user clearly.
+                errors.add("Storage Full: ${e.message}")
+                emit(BackupProgress(
+                    totalFiles = totalFiles,
+                    uploadedFiles = uploadedCount - 1,
+                    currentFileName = file.name,
+                    status = "Backup halted: Google Drive storage is full.",
+                    errors = errors.toList()
+                ))
+                return@flow
+            } catch (e: IOException) {
+                // 📶 Edge Case: Network lost mid-backup
+                // Strategy: Throw IOException so BackupWorker can catch it and return Result.retry() 
+                // leveraging WorkManager's automatic network constraint pausing.
+                throw e
+            }
         }
 
         emit(BackupProgress(
@@ -107,9 +139,19 @@ class RunBackupUseCase(
             try {
                 val fileId = driveClient.uploadFile(account, path, folderId, mimeType)
                 if (fileId != null) return true
-            } catch (_: Exception) {
+            } catch (e: Exception) {
+                // Detect specific fatal errors that shouldn't be retried
+                val msg = e.message ?: ""
+                if (msg.contains("quotaExceeded") || msg.contains("403")) {
+                    throw DriveStorageFullException("Google Drive quota exceeded.")
+                }
+                if (e is IOException) {
+                    // Propagate network errors for WorkManager
+                    if (attempts >= maxAttempts) throw e
+                }
+                
                 if (attempts >= maxAttempts) break
-                // ⏱️ Exponential or linear backoff
+                // ⏱️ Linear backoff
                 delay(attempts * 1000L) 
             }
         }
