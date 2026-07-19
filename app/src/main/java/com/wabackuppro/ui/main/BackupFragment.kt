@@ -58,9 +58,19 @@ class BackupFragment : Fragment() {
                 val account = task.getResult(Exception::class.java)
                 viewModel.updateAccount(account)
             } catch (e: Exception) {
-                Snackbar.make(binding.root, "Sign-in failed: ${e.message}", Snackbar.LENGTH_LONG).show()
+                showSignInError("Exception during sign-in: ${e.message}\nIf this is an ApiException (like code 10), your exported APK's SHA-1 fingerprint is not registered in the Google Cloud Console.")
             }
+        } else {
+            showSignInError("Sign-in cancelled or failed (Result Code: ${result.resultCode}).\nThis usually means the Google Cloud OAuth 2.0 client ID is missing the SHA-1 signature of the APK you just installed.")
         }
+    }
+
+    private fun showSignInError(error: String) {
+        AlertDialog.Builder(requireContext())
+            .setTitle("Google Sign-In Failed")
+            .setMessage(error)
+            .setPositiveButton("OK", null)
+            .show()
     }
 
     override fun onCreateView(
