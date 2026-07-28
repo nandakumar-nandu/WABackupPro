@@ -18,6 +18,7 @@ import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import com.google.android.material.materialswitch.MaterialSwitch
 import com.wabackuppro.R
+import com.wabackuppro.domain.models.BackupCategory
 import com.wabackuppro.ui.about.AboutActivity
 import com.wabackuppro.ui.main.MainViewModel
 import com.wabackuppro.utils.BackupScheduler
@@ -41,11 +42,32 @@ class SettingsFragment : Fragment() {
         const val PREF_WIFI_ONLY = "wifi_only"
         const val PREF_HISTORY_DAYS = "history_days"
 
-        // 🔄 Force Full Backup override key constant.
-        // This setting acts as an escape hatch to bypass delta detection algorithms
-        // and force a complete upload of all local files in case of local database corruption,
-        // remote folder deletion, or manual re-synchronization requests.
+        // 🔄 Force Full Backup override key constant
         const val PREF_FORCE_FULL_BACKUP = "force_full_backup"
+
+        // 🗂️ Selective Backup Category SharedPreferences key constants
+        // Each key stores a Boolean flag indicating whether the category is enabled for backup.
+        const val PREF_CAT_DOCUMENTS = "cat_documents"
+        const val PREF_CAT_IMAGES = "cat_images"
+        const val PREF_CAT_VIDEO = "cat_video"
+        const val PREF_CAT_AUDIO = "cat_audio"
+        const val PREF_CAT_VOICE_NOTES = "cat_voice_notes"
+
+        /**
+         * Helper method to read the currently selected set of [BackupCategory] values from SharedPreferences.
+         */
+        fun getSelectedCategories(context: Context): Set<BackupCategory> {
+            val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            val selected = mutableSetOf<BackupCategory>()
+
+            if (prefs.getBoolean(PREF_CAT_DOCUMENTS, true)) selected.add(BackupCategory.DOCUMENTS)
+            if (prefs.getBoolean(PREF_CAT_IMAGES, true)) selected.add(BackupCategory.IMAGES)
+            if (prefs.getBoolean(PREF_CAT_VIDEO, true)) selected.add(BackupCategory.VIDEO)
+            if (prefs.getBoolean(PREF_CAT_AUDIO, true)) selected.add(BackupCategory.AUDIO)
+            if (prefs.getBoolean(PREF_CAT_VOICE_NOTES, true)) selected.add(BackupCategory.VOICE_NOTES)
+
+            return selected
+        }
     }
 
     override fun onCreateView(
@@ -58,6 +80,16 @@ class SettingsFragment : Fragment() {
         val switchWifiOnly: MaterialSwitch = view.findViewById(R.id.switch_wifi_only)
         val switchForceFullBackup: MaterialSwitch = view.findViewById(R.id.switch_force_full_backup)
         val etHistoryDays: EditText = view.findViewById(R.id.et_history_days)
+
+        // Category Switches & Buttons
+        val switchCatDocs: MaterialSwitch = view.findViewById(R.id.switch_cat_documents)
+        val switchCatImages: MaterialSwitch = view.findViewById(R.id.switch_cat_images)
+        val switchCatVideo: MaterialSwitch = view.findViewById(R.id.switch_cat_video)
+        val switchCatAudio: MaterialSwitch = view.findViewById(R.id.switch_cat_audio)
+        val switchCatVoiceNotes: MaterialSwitch = view.findViewById(R.id.switch_cat_voice_notes)
+        val btnSelectAll: Button = view.findViewById(R.id.btn_select_all_categories)
+        val btnSelectNone: Button = view.findViewById(R.id.btn_select_none_categories)
+
         val txtAccountEmail: TextView = view.findViewById(R.id.txt_account_email)
         val btnSignOut: Button = view.findViewById(R.id.btn_sign_out)
         val btnForceBackup: Button = view.findViewById(R.id.btn_force_backup)
@@ -74,6 +106,13 @@ class SettingsFragment : Fragment() {
         switchForceFullBackup.isChecked = prefs.getBoolean(PREF_FORCE_FULL_BACKUP, false)
         etHistoryDays.setText(prefs.getInt(PREF_HISTORY_DAYS, 30).toString())
 
+        // Load Category switch states
+        switchCatDocs.isChecked = prefs.getBoolean(PREF_CAT_DOCUMENTS, true)
+        switchCatImages.isChecked = prefs.getBoolean(PREF_CAT_IMAGES, true)
+        switchCatVideo.isChecked = prefs.getBoolean(PREF_CAT_VIDEO, true)
+        switchCatAudio.isChecked = prefs.getBoolean(PREF_CAT_AUDIO, true)
+        switchCatVoiceNotes.isChecked = prefs.getBoolean(PREF_CAT_VOICE_NOTES, true)
+
         // Time Picker Logic
         btnTimePicker.setOnClickListener {
             val currentHour = prefs.getInt(PREF_BACKUP_TIME_HOUR, 2)
@@ -86,21 +125,73 @@ class SettingsFragment : Fragment() {
                     .apply()
                 btnTimePicker.text = formatTime(selectedHour, selectedMinute)
                 
-                // Reschedule the WorkManager with the new time
                 BackupScheduler(requireContext()).scheduleFridayBackup(LocalTime.of(selectedHour, selectedMinute))
             }, currentHour, currentMinute, false).show()
         }
 
-        // Wi-Fi Only Logic
+        // Wi-Fi Only & Force Full Backup Logic
         switchWifiOnly.setOnCheckedChangeListener { _, isChecked ->
             prefs.edit().putBoolean(PREF_WIFI_ONLY, isChecked).apply()
         }
 
-        // Force Full Backup Switch Logic (Escape Hatch override)
         switchForceFullBackup.setOnCheckedChangeListener { _, isChecked ->
             prefs.edit().putBoolean(PREF_FORCE_FULL_BACKUP, isChecked).apply()
             val msg = if (isChecked) "Force full backup enabled (Delta detection bypassed)." else "Incremental backup enabled (Delta detection active)."
             Toast.makeText(requireContext(), msg, Toast.LENGTH_SHORT).show()
+        }
+
+        // Category Switch Change Listeners
+        switchCatDocs.setOnCheckedChangeListener { _, isChecked ->
+            prefs.edit().putBoolean(PREF_CAT_DOCUMENTS, isChecked).apply()
+        }
+        switchCatImages.setOnCheckedChangeListener { _, isChecked ->
+            prefs.edit().putBoolean(PREF_CAT_IMAGES, isChecked).apply()
+        }
+        switchCatVideo.setOnCheckedChangeListener { _, isChecked ->
+            prefs.edit().putBoolean(PREF_CAT_VIDEO, isChecked).apply()
+        }
+        switchCatAudio.setOnCheckedChangeListener { _, isChecked ->
+            prefs.edit().putBoolean(PREF_CAT_AUDIO, isChecked).apply()
+        }
+        switchCatVoiceNotes.setOnCheckedChangeListener { _, isChecked ->
+            prefs.edit().putBoolean(PREF_CAT_VOICE_NOTES, isChecked).apply()
+        }
+
+        // Select All / Select None Shortcut Buttons
+        btnSelectAll.setOnClickListener {
+            switchCatDocs.isChecked = true
+            switchCatImages.isChecked = true
+            switchCatVideo.isChecked = true
+            switchCatAudio.isChecked = true
+            switchCatVoiceNotes.isChecked = true
+
+            prefs.edit()
+                .putBoolean(PREF_CAT_DOCUMENTS, true)
+                .putBoolean(PREF_CAT_IMAGES, true)
+                .putBoolean(PREF_CAT_VIDEO, true)
+                .putBoolean(PREF_CAT_AUDIO, true)
+                .putBoolean(PREF_CAT_VOICE_NOTES, true)
+                .apply()
+
+            Toast.makeText(requireContext(), "All categories selected", Toast.LENGTH_SHORT).show()
+        }
+
+        btnSelectNone.setOnClickListener {
+            switchCatDocs.isChecked = false
+            switchCatImages.isChecked = false
+            switchCatVideo.isChecked = false
+            switchCatAudio.isChecked = false
+            switchCatVoiceNotes.isChecked = false
+
+            prefs.edit()
+                .putBoolean(PREF_CAT_DOCUMENTS, false)
+                .putBoolean(PREF_CAT_IMAGES, false)
+                .putBoolean(PREF_CAT_VIDEO, false)
+                .putBoolean(PREF_CAT_AUDIO, false)
+                .putBoolean(PREF_CAT_VOICE_NOTES, false)
+                .apply()
+
+            Toast.makeText(requireContext(), "All categories deselected", Toast.LENGTH_SHORT).show()
         }
 
         // History Days Logic
@@ -125,7 +216,6 @@ class SettingsFragment : Fragment() {
         }
 
         btnForceBackup.setOnClickListener {
-            // Shortcut to trigger the backup worker immediately
             val workRequest = OneTimeWorkRequestBuilder<BackupWorker>().build()
             WorkManager.getInstance(requireContext()).enqueue(workRequest)
             Toast.makeText(requireContext(), "Backup triggered manually.", Toast.LENGTH_SHORT).show()

@@ -62,6 +62,18 @@ The application uses the **Google Drive REST API v3** combined with **Google Pla
 4. **Force Full Backup Manual Override**:
    - Users can toggle "Force Full Backup" in Settings (`PREF_FORCE_FULL_BACKUP`). This acts as an emergency escape hatch to re-upload all files if local database state or remote manifests become corrupted.
 
+## Choosing What to Back Up (Implementation v1.2.0)
+
+1. **Selective Categories Model**:
+   - `BackupCategory` enum defines 5 distinct media and document types: `DOCUMENTS`, `IMAGES`, `VIDEO`, `AUDIO`, and `VOICE_NOTES`.
+2. **Directory & Path Rule Separation**:
+   - `FileScanner` classifies media by evaluating file extensions, MediaStore MIME types, and filesystem directory paths.
+   - **Voice Notes Distinction**: Voice messages located in `WhatsApp Voice Notes/` or `PTT/` folders are separated into the `VOICE_NOTES` category, keeping them distinct from general music tracks or audio clips (`AUDIO`).
+3. **User Category Preferences**:
+   - Toggles in Settings (`PREF_CAT_*`) allow users to selectively enable/disable any category. "Select All" and "Select None" quick action buttons simplify mass toggling.
+4. **Empty Selection Short-Circuiting**:
+   - If a user deselects all categories, `RunBackupUseCase` short-circuits immediately with a friendly notice ("Nothing selected"), preventing unnecessary folder creation and API request overhead.
+
 ## Running a Manual Backup (Implementation)
 
 1. **Triggering the Job**:
@@ -85,6 +97,7 @@ The application uses the **Google Drive REST API v3** combined with **Google Pla
 3. **UI Display**:
    - The Backup History screen observes the Room Database reactively using Kotlin Flows.
    - A `RecyclerView` presents the records from newest to oldest, with visual status badges (Success, Partial, Failed).
+   - Each history card displays a per-category file breakdown (e.g. `"12 docs · 340 photos · 8 videos"`).
    - If a valid Drive link is captured, an "Open in Drive" button is displayed directly on the card.
 
 ## Settings & Preferences (Implementation)
@@ -95,11 +108,13 @@ The application uses the **Google Drive REST API v3** combined with **Google Pla
    - A time picker dialog allows users to choose the exact time their weekly Friday backup triggers. Upon selection, the WorkManager scheduler is immediately updated.
 3. **Operational Constraints**:
    - A Wi-Fi only toggle is available, which internally maps to the WorkManager `NetworkType.UNMETERED` constraint.
-4. **Data Management**:
+4. **Category Selection Panel**:
+   - Individual category switches allow fine-grained control over Documents, Images, Videos, Audio, and Voice Notes backups.
+5. **Data Management**:
    - Users can configure the historical retention period (e.g., keep records for 30 days). The DAO supports cleaning up old records based on this threshold.
-5. **Account Controls**:
+6. **Account Controls**:
    - The screen shows the currently authenticated Google Account and provides a single-tap sign-out action, which revokes local access and clears the UI state.
-6. **Manual Trigger & Escape Hatch**:
+7. **Manual Trigger & Escape Hatch**:
    - A "Force Full Backup" switch overrides delta detection to force full file uploads.
    - For convenience, a "Run Backup Now" shortcut bypasses the schedule and launches the background backup process immediately.
 
@@ -124,7 +139,7 @@ journey
       Launch WABackupPro: 5: User
     section Setup & Auth
       Authorize Google Drive: 4: User, App
-      Configure Backup Frequency: 4: User
+      Configure Backup Frequency & Categories: 4: User
     section Automated Operations
       System runs scheduled job in background: 5: App
       Sync occurs over Wi-Fi: 5: App
@@ -133,4 +148,4 @@ journey
 ```
 
 ---
-**This marks the complete architectural walkthrough of WABackupPro (v1.1.0)! 🚀**
+**This marks the complete architectural walkthrough of WABackupPro (v1.2.0)! 🚀**

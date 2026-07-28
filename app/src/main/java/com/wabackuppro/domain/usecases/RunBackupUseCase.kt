@@ -4,6 +4,7 @@ import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import com.wabackuppro.data.local.daos.BackupFileEntryDao
 import com.wabackuppro.data.local.entities.BackupFileEntry
 import com.wabackuppro.data.remote.DriveClient
+import com.wabackuppro.domain.models.BackupCategory
 import com.wabackuppro.domain.models.BackupFile
 import com.wabackuppro.domain.models.BackupProgress
 import com.wabackuppro.utils.FileScanner
@@ -19,12 +20,13 @@ import java.time.format.DateTimeFormatter
 class NoFilesFoundException(message: String) : Exception(message)
 class DriveStorageFullException(message: String) : Exception(message)
 class AuthExpiredException(message: String) : Exception(message)
+class NoCategoriesSelectedException(message: String) : Exception(message)
 
 /**
- * RunBackupUseCase orchestrates the incremental backup workflow with delta detection.
+ * RunBackupUseCase orchestrates the incremental backup workflow with delta detection and category filtering.
  * 
- * Why Incremental Delta Detection is Critical:
- * - Skipping unchanged files dramatically reduces Google Drive API request quota consumption.
+ * Why Incremental Delta Detection & Category Filtering is Critical:
+ * - Skipping unchanged files and unselected categories dramatically reduces Google Drive API request quota consumption.
  * - Saves cellular/Wi-Fi data transfer volume and shortens execution duration.
  * - Significantly lowers battery power consumption during automated background scheduled runs.
  */
@@ -39,24 +41,38 @@ class RunBackupUseCase(
      * Executes the backup process and emits progress updates.
      * 
      * @param account The authenticated Google account.
-     * @param forceFullBackup Manual override flag. If true, bypasses delta detection and uploads all files.
+     * @param categories Set of [BackupCategory] selected for backup by user preferences.
+     * @param forceFullBackup Manual override flag. If true, bypasses delta detection and uploads all files in selected categories.
      * @return A Flow of [BackupProgress] updates.
      */
     fun execute(
         account: GoogleSignInAccount,
+        categories: Set<BackupCategory> = BackupCategory.values().toSet(),
         forceFullBackup: Boolean = false
     ): Flow<BackupProgress> = flow {
         val errors = mutableListOf<String>()
         emit(BackupProgress(status = "Initializing backup..."))
 
-        // 🔍 Step 1: Discover WhatsApp Business files
-        emit(BackupProgress(status = "Scanning files..."))
-        val scannedFiles = fileScanner.scanWhatsAppBusinessFiles()
+        // 🚫 Empty Selection Short-Circuit:
+        // Short-circuiting when no categories are selected avoids creating empty folders in Google Drive,
+        // eliminates unneeded MediaStore queries, and saves cellular/Wi-Fi data transfer volume.
+        if (categories.isEmpty()) {
+            emit(BackupProgress(
+                status = "Nothing selected. Please enable at least one backup category in Settings.",
+                totalFiles = 0,
+                errors = listOf("NoCategoriesSelectedException")
+            ))
+            return@flow
+        }
+
+        // 🔍 Step 1: Discover WhatsApp Business files matching selected categories
+        emit(BackupProgress(status = "Scanning files for selected categories..."))
+        val scannedFiles = fileScanner.scanWhatsAppBusinessFiles(categories)
         val totalFiles = scannedFiles.size
 
         if (totalFiles == 0) {
             emit(BackupProgress(
-                status = "No WhatsApp Business files found to backup. Ensure WhatsApp Business is installed.",
+                status = "No WhatsApp Business files found matching selected categories.",
                 totalFiles = 0,
                 errors = listOf("NoFilesFoundException")
             ))

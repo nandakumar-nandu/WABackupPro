@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.2.0] - 2026-07-28 12:55
+
+### Added
+- **Selective Backup Categories**: Introduced `BackupCategory` enum (`DOCUMENTS`, `IMAGES`, `VIDEO`, `AUDIO`, `VOICE_NOTES`) allowing users to customize media types backed up to Google Drive.
+- **Voice Notes Separation Engine**: Enhanced `FileScanner` to inspect directory paths (`WhatsApp Voice Notes` / `PTT`) to differentiate voice notes from general audio tracks.
+- **Category Settings UI**: Built a Material3 category selection panel in `SettingsFragment` complete with per-category toggle switches, SharedPreferences persistence (`PREF_CAT_*`), and "Select All" / "Select None" quick shortcut buttons.
+- **Empty Selection Short-Circuiting**: Updated `RunBackupUseCase` to short-circuit immediately with a clear user notice when no categories are selected, avoiding zero-item folder creations and API quota consumption.
+- **History Per-Category Breakdown**: Updated `HistoryAdapter` and `item_backup_record.xml` to display formatted per-category file breakdown summaries on each history card.
+- **Documentation**: Added category-to-file-extension mapping table to `README.md`, updated `WALKTHROUGH.md`, and added "Settings — Category Selection" screen to `SCREENTOUR.md`.
+
 ## [1.1.0] - 2026-07-28 12:50
 
 ### Added

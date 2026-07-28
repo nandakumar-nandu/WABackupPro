@@ -7,6 +7,16 @@ Automated background backups of WhatsApp Business databases and files to Google 
 ## App Concept
 **WABackupPro** is designed to provide secure, automated backups of WhatsApp Business database files (e.g., `msgstore.db.crypt14`) and media assets directly to a user's Google Drive account. Utilizing WorkManager for reliable background job execution, Room for storing audit history logs and SHA-256 delta manifests, and the Google Drive REST API, the application runs incrementally in the background without affecting daily productivity.
 
+## Backup Categories Mapping Table
+
+| Category | Extensions | MIME Types | WhatsApp Directory Path |
+| :--- | :--- | :--- | :--- |
+| **DOCUMENTS** | `.pdf`, `.docx`, `.xlsx`, `.pptx`, `.txt`, `.csv`, `.zip` | `application/pdf`, `application/msword`, `text/plain` | `WhatsApp Business/Media/WhatsApp Documents/` |
+| **IMAGES** | `.jpg`, `.jpeg`, `.png`, `.webp`, `.gif` | `image/jpeg`, `image/png`, `image/webp` | `WhatsApp Business/Media/WhatsApp Images/` |
+| **VIDEO** | `.mp4`, `.3gp`, `.mkv`, `.webm`, `.avi` | `video/mp4`, `video/3gpp`, `video/x-matroska` | `WhatsApp Business/Media/WhatsApp Video/` |
+| **AUDIO** | `.mp3`, `.aac`, `.wav`, `.flac` | `audio/mpeg`, `audio/aac`, `audio/wav` | `WhatsApp Business/Media/WhatsApp Audio/` |
+| **VOICE_NOTES** | `.opus`, `.m4a`, `.ogg` | `audio/opus`, `audio/ogg`, `audio/aac` | `WhatsApp Business/Media/WhatsApp Voice Notes/`, `PTT/` |
+
 ## Architecture
 
 This application adheres to **MVVM + Clean Architecture** guidelines to decouple dependencies and make the codebase highly testable.
@@ -120,8 +130,8 @@ sequenceDiagram
     participant MS as MediaStore / Drive API
 
     User->>VM: Click "Start Backup"
-    VM->>UC: execute(account, forceFullBackup)
-    UC->>FS: scanWhatsAppBusinessFiles()
+    VM->>UC: execute(account, categories, forceFullBackup)
+    UC->>FS: scanWhatsAppBusinessFiles(categories)
     FS->>MS: Query MediaStore
     MS-->>FS: File List
     FS-->>UC: List<BackupFile>

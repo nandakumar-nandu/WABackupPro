@@ -1,6 +1,6 @@
 # Screen Tour: WABackupPro
 
-This document gives an overview of the screens configured in WABackupPro version 1.1.0.
+This document gives an overview of the screens configured in WABackupPro version 1.2.0.
 
 ## Complete Screens
 
@@ -37,16 +37,20 @@ This document gives an overview of the screens configured in WABackupPro version
 - **Purpose**: Displays a comprehensive, chronological list of all past backups retrieved from the local Room database.
 - **Visual Structure**:
   - **RecyclerView**: A scrollable list displaying individual cards for each backup job.
-  - **Record Card**: Shows the formatted timestamp (e.g., Jul 18, 2026), file processing metrics (Success: 150, Failed: 0), and total upload duration.
+  - **Record Card**: Shows the formatted timestamp (e.g., Jul 18, 2026), file processing metrics (Success: 150, Failed: 0), total upload duration, and per-category breakdown text (e.g. `"12 docs · 340 photos · 8 videos"`).
   - **Status Badge**: Visually indicates outcome with color coding (Green for SUCCESS/PARTIAL, Red for FAILED).
   - **Action Link**: An "Open in Drive" text button that launches a browser or the Drive app to view the backed-up files.
 
-### 5. Settings Screen & Force Full Backup Escape Hatch
-- **Purpose**: The configuration hub for authentication, constraints, scheduling, and delta detection overrides.
+### 5. Settings Screen & Selective Category Panel
+- **Purpose**: The configuration hub for authentication, constraints, scheduling, category filtering, and delta detection overrides.
 - **Visual Structure**:
   - **Schedule Controls**: A labeled row with a button triggering an Android `TimePickerDialog` to set the Friday backup time.
   - **Network Constraints**: A modern `MaterialSwitch` to enforce Wi-Fi-only uploads.
-  - **Force Full Backup Switch**: A prominent `MaterialSwitch` control ("Force Full Backup (Bypass Delta Detection)"). When enabled, delta detection hashing is bypassed and all local files are forcibly uploaded. This serves as an escape hatch for manifest recovery or manual re-syncing.
+  - **Force Full Backup Switch**: A prominent `MaterialSwitch` control ("Force Full Backup (Bypass Delta Detection)").
+  - **Category Selection Panel**:
+    - **Header**: "Backup Categories".
+    - **Shortcuts Row**: "Select All" and "Select None" text action buttons.
+    - **Toggles**: 5 distinct Material3 switches for Documents, Images, Video, Audio, and Voice Notes.
   - **History Management**: An inline `EditText` field allowing the user to specify how many days to retain backup history.
   - **Account Integration**: Displays the currently signed-in Google email address, along with a prominent "Sign Out" button.
   - **Manual Trigger**: A distinct button at the bottom providing a quick shortcut to "Run Backup Now" without leaving the settings screen.
@@ -62,6 +66,7 @@ graph TD
     
     BackupFragment -->|Click Start Backup| LogView[ViewModel Updates Logs List]
     BackupFragment -->|Drive Quota Full / Network Error| RetryButton[Show Retry Button]
+    SettingsFragment -->|Toggle Categories| CatSwitch[Select / Deselect Media Types]
     SettingsFragment -->|Toggle Force Full Backup| DeltaSwitch[Override Delta Detection]
     SettingsFragment -->|Click Login| GoogleConsent[Google OAuth Consent Flow]
 ```

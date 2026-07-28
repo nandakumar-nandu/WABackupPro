@@ -42,7 +42,7 @@ class BackupWorker(
         // 🛡️ Elevate to foreground service with a persistent notification
         setForeground(createForegroundInfo("Starting automatic backup..."))
 
-        // 🔄 Instantiate dependencies manually (since no DI framework is used)
+        // 🔄 Instantiate dependencies manually
         val db = AppDatabase.getDatabase(applicationContext)
         val backupFileEntryDao = db.backupFileEntryDao()
         val fileScanner = FileScanner(applicationContext)
@@ -62,12 +62,13 @@ class BackupWorker(
 
         val prefs = applicationContext.getSharedPreferences(SettingsFragment.PREFS_NAME, Context.MODE_PRIVATE)
         val forceFullBackup = prefs.getBoolean(SettingsFragment.PREF_FORCE_FULL_BACKUP, false)
+        val selectedCategories = SettingsFragment.getSelectedCategories(applicationContext)
 
         var isSuccess = true
 
         try {
             // 🚀 Execute the backup and collect progress updates
-            useCase.execute(account, forceFullBackup).collect { progress ->
+            useCase.execute(account, selectedCategories, forceFullBackup).collect { progress ->
                 // Update the notification with the current progress
                 setForeground(createForegroundInfo(progress.status))
                 
@@ -76,9 +77,6 @@ class BackupWorker(
                 }
             }
         } catch (e: java.io.IOException) {
-            // 📶 Edge Case: Network lost mid-backup
-            // Strategy: Catch IOException thrown by the UseCase and return Result.retry() 
-            // so WorkManager will pause and resume the job when constraints (Network) are met again.
             e.printStackTrace()
             return Result.retry()
         } catch (e: Exception) {

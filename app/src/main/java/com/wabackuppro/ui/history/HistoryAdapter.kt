@@ -7,7 +7,6 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.TextView
-import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
@@ -32,6 +31,7 @@ class HistoryAdapter : ListAdapter<BackupRecord, HistoryAdapter.ViewHolder>(Back
         private val txtDate: TextView = itemView.findViewById(R.id.txt_date)
         private val badgeStatus: TextView = itemView.findViewById(R.id.badge_status)
         private val txtFilesCount: TextView = itemView.findViewById(R.id.txt_files_count)
+        private val txtCategoryBreakdown: TextView = itemView.findViewById(R.id.txt_category_breakdown)
         private val txtDuration: TextView = itemView.findViewById(R.id.txt_duration)
         private val btnOpenDrive: Button = itemView.findViewById(R.id.btn_open_drive)
 
@@ -40,6 +40,15 @@ class HistoryAdapter : ListAdapter<BackupRecord, HistoryAdapter.ViewHolder>(Back
         fun bind(record: BackupRecord) {
             txtDate.text = dateFormat.format(Date(record.timestamp))
             txtFilesCount.text = "Files: ${record.totalFiles} (Success: ${record.successCount}, Failed: ${record.failCount})"
+            
+            // Format per-category summary string (e.g., "12 docs · 340 photos · 8 videos")
+            val summary = if (!record.uploadedFilesManifest.isNullOrEmpty()) {
+                record.uploadedFilesManifest
+            } else {
+                "${record.successCount} files backed up across active categories"
+            }
+            txtCategoryBreakdown.text = summary
+
             txtDuration.text = "Duration: ${record.durationSeconds}s"
 
             if (record.failCount == 0 && record.successCount > 0) {
@@ -47,7 +56,7 @@ class HistoryAdapter : ListAdapter<BackupRecord, HistoryAdapter.ViewHolder>(Back
                 badgeStatus.setBackgroundResource(R.drawable.bg_badge_success)
             } else if (record.successCount > 0) {
                 badgeStatus.text = "PARTIAL"
-                badgeStatus.setBackgroundResource(R.drawable.bg_badge_success) // Could use a different color
+                badgeStatus.setBackgroundResource(R.drawable.bg_badge_success)
             } else {
                 badgeStatus.text = "FAILED"
                 badgeStatus.setBackgroundResource(R.drawable.bg_badge_error)

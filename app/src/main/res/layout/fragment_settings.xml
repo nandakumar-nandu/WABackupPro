@@ -55,7 +55,6 @@
             android:layout_marginBottom="16dp"/>
 
         <!-- Force Full Backup Manual Override Switch -->
-        <!-- Escape hatch switch to bypass delta detection and force upload of all files in case of manifest corruption or manual re-syncing requirements -->
         <com.google.android.material.materialswitch.MaterialSwitch
             android:id="@+id/switch_force_full_backup"
             android:layout_width="match_parent"
@@ -71,7 +70,7 @@
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:gravity="center_vertical"
-            android:layout_marginBottom="32dp">
+            android:layout_marginBottom="24dp">
             <TextView
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
@@ -93,7 +92,86 @@
             android:layout_width="match_parent"
             android:layout_height="1dp"
             android:background="?attr/colorOutlineVariant"
-            android:layout_marginBottom="32dp"/>
+            android:layout_marginBottom="24dp"/>
+
+        <!-- Selective Backup Categories Section -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Backup Categories"
+            android:textAppearance="?attr/textAppearanceTitleMedium"
+            android:textColor="?attr/colorPrimary"
+            android:layout_marginBottom="8dp"/>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="12dp">
+            <Button
+                android:id="@+id/btn_select_all_categories"
+                style="@style/Widget.Material3.Button.TextButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Select All" />
+            <Button
+                android:id="@+id/btn_select_none_categories"
+                style="@style/Widget.Material3.Button.TextButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Select None" />
+        </LinearLayout>
+
+        <com.google.android.material.materialswitch.MaterialSwitch
+            android:id="@+id/switch_cat_documents"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Documents (PDF, DOCX, XLSX, TXT)"
+            android:checked="true"
+            android:textAppearance="?attr/textAppearanceBodyLarge"
+            android:layout_marginBottom="8dp"/>
+
+        <com.google.android.material.materialswitch.MaterialSwitch
+            android:id="@+id/switch_cat_images"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Images (JPG, PNG, WebP)"
+            android:checked="true"
+            android:textAppearance="?attr/textAppearanceBodyLarge"
+            android:layout_marginBottom="8dp"/>
+
+        <com.google.android.material.materialswitch.MaterialSwitch
+            android:id="@+id/switch_cat_video"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Video (MP4, 3GP, MKV)"
+            android:checked="true"
+            android:textAppearance="?attr/textAppearanceBodyLarge"
+            android:layout_marginBottom="8dp"/>
+
+        <com.google.android.material.materialswitch.MaterialSwitch
+            android:id="@+id/switch_cat_audio"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Audio (MP3, AAC, WAV)"
+            android:checked="true"
+            android:textAppearance="?attr/textAppearanceBodyLarge"
+            android:layout_marginBottom="8dp"/>
+
+        <com.google.android.material.materialswitch.MaterialSwitch
+            android:id="@+id/switch_cat_voice_notes"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Voice Notes (OPUS, PTT Recordings)"
+            android:checked="true"
+            android:textAppearance="?attr/textAppearanceBodyLarge"
+            android:layout_marginBottom="24dp"/>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="?attr/colorOutlineVariant"
+            android:layout_marginBottom="24dp"/>
 
         <TextView
             android:layout_width="wrap_content"

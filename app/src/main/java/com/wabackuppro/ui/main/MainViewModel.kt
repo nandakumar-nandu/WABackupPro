@@ -91,7 +91,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     /**
-     * Triggers the incremental or full backup process using RunBackupUseCase.
+     * Triggers the backup process with category preferences and force override settings.
      */
     fun startBackup() {
         val account = _googleAccount.value ?: run {
@@ -101,6 +101,14 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
         val prefs = getApplication<Application>().getSharedPreferences(SettingsFragment.PREFS_NAME, Context.MODE_PRIVATE)
         val forceFullBackup = prefs.getBoolean(SettingsFragment.PREF_FORCE_FULL_BACKUP, false)
+        val selectedCategories = SettingsFragment.getSelectedCategories(getApplication())
+
+        if (selectedCategories.isEmpty()) {
+            addLog("⚠️ No categories selected for backup! Enable at least one category in Settings.")
+        } else {
+            val catNames = selectedCategories.joinToString(", ") { it.displayName }
+            addLog("🗂️ Categories selected: $catNames")
+        }
 
         if (forceFullBackup) {
             addLog("⚠️ Force Full Backup override active: skipping delta detection.")
@@ -109,7 +117,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         }
 
         viewModelScope.launch(Dispatchers.IO) {
-            runBackupUseCase.execute(account, forceFullBackup).collect { progress ->
+            runBackupUseCase.execute(account, selectedCategories, forceFullBackup).collect { progress ->
                 _backupProgress.postValue(progress)
                 _backupStatus.postValue(progress.status)
                 
@@ -117,7 +125,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 if (progress.status.startsWith("Uploaded") || progress.status.startsWith("Failed")) {
                     val icon = if (progress.status.startsWith("Uploaded")) "✅" else "❌"
                     addLog("$icon ${progress.status}")
-                } else if (progress.status.contains("Complete") || progress.status.contains("Scanning") || progress.status.contains("up to date")) {
+                } else if (progress.status.contains("Complete") || progress.status.contains("Scanning") || progress.status.contains("up to date") || progress.status.contains("Nothing selected")) {
                     addLog("ℹ️ ${progress.status}")
                 }
             }
@@ -137,15 +145,12 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             try {
                 addLog("Starting test upload...")
                 
-                // 1. Create a "WABackup_Test" folder
                 val folderId = driveClient.createFolder(account, "WABackup_Test") ?: throw Exception("Folder creation failed")
                 addLog("Created folder: WABackup_Test (ID: $folderId)")
 
-                // 2. Create a dummy local file for testing
                 val testFile = java.io.File(getApplication<Application>().cacheDir, "test_backup.txt")
                 testFile.writeText("WABackupPro Test Content - ${LocalDateTime.now()}")
 
-                // 3. Upload the file
                 val fileId = driveClient.uploadFile(
                     account,
                     testFile.absolutePath,
