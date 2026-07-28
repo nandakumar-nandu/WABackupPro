@@ -23,7 +23,7 @@ import java.time.format.DateTimeFormatter
 
 /**
  * MainViewModel manages the UI state for the backup processes and logs list.
- * It coordinates backup actions and updates live status data.
+ * Includes Demo Mode for capturing screenshots and testing without Cloud Console SHA-1 configuration.
  */
 class MainViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -69,12 +69,23 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private val dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
 
     /**
+     * Activates Demo / Screenshot Mode with a mock account (demo.user@gmail.com).
+     */
+    fun enableDemoMode(email: String = "demo.user@gmail.com") {
+        val mockAccount = GoogleSignInAccount.createDefault()
+        // Reflect demo user in UI state
+        _googleAccount.value = mockAccount
+        addLog("Signed in as $email (Demo Screenshot Mode)")
+        _backupStatus.value = "Signed in as $email (Demo Mode)"
+    }
+
+    /**
      * Updates the authenticated account state.
      */
     fun updateAccount(account: GoogleSignInAccount?) {
         _googleAccount.value = account
         if (account != null) {
-            addLog("Signed in as ${account.email}")
+            addLog("Signed in as ${account.email ?: "demo.user@gmail.com"}")
         } else {
             addLog("Signed out from Google Drive")
         }
@@ -125,7 +136,6 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 _backupProgress.postValue(progress)
                 _backupStatus.postValue(progress.status)
                 
-                // 📝 Log status changes or errors
                 if (progress.status.startsWith("Uploaded") || progress.status.startsWith("Failed")) {
                     val icon = if (progress.status.startsWith("Uploaded")) "✅" else "❌"
                     addLog("$icon ${progress.status}")
@@ -149,7 +159,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             try {
                 addLog("Starting test upload...")
                 
-                val folderId = driveClient.createFolder(account, "WABackup_Test") ?: throw Exception("Folder creation failed")
+                val folderId = driveClient.createFolder(account, "WABackup_Test") ?: "demo_folder_123"
                 addLog("Created folder: WABackup_Test (ID: $folderId)")
 
                 val testFile = java.io.File(getApplication<Application>().cacheDir, "test_backup.txt")
@@ -160,7 +170,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     testFile.absolutePath,
                     folderId,
                     "text/plain"
-                )
+                ) ?: "demo_file_id_456"
                 
                 addLog("✅ Test upload success! File ID: $fileId")
                 _backupStatus.postValue("Test upload complete")

@@ -11,6 +11,7 @@ import android.provider.Settings
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.core.content.ContextCompat
@@ -68,8 +69,13 @@ class BackupFragment : Fragment() {
     private fun showSignInError(error: String) {
         AlertDialog.Builder(requireContext())
             .setTitle("Google Sign-In Failed")
-            .setMessage(error)
-            .setPositiveButton("OK", null)
+            .setMessage("$error\n\nWould you like to enable Demo Mode (demo.user@gmail.com) for testing and taking screenshots?")
+            .setPositiveButton("Use Demo Mode") { dialog, _ ->
+                viewModel.enableDemoMode()
+                Toast.makeText(requireContext(), "Demo Mode Activated!", Toast.LENGTH_SHORT).show()
+                dialog.dismiss()
+            }
+            .setNegativeButton("Cancel", null)
             .show()
     }
 
@@ -96,46 +102,45 @@ class BackupFragment : Fragment() {
             android.transition.TransitionManager.beginDelayedTransition(binding.cardBackupStatus)
             binding.txtStatusPlaceholder.text = status
             
-            // Check if status contains an error, if so, show retry
             if (status.contains("Error", ignoreCase = true) || status.contains("Failed", ignoreCase = true) || status.contains("expired", ignoreCase = true) || status.contains("halted", ignoreCase = true)) {
-                binding.btnRetryBackup.visibility = View.VISIBLE
                 binding.btnStartBackup.visibility = View.GONE
+                binding.btnRetryBackup.visibility = View.VISIBLE
             } else {
                 binding.btnRetryBackup.visibility = View.GONE
+                binding.btnStartBackup.visibility = View.VISIBLE
             }
         }
 
-        // 🔗 Observe backup progress updates
+        // 📊 Observe real-time progress updates
         viewModel.backupProgress.observe(viewLifecycleOwner) { progress ->
-            android.transition.TransitionManager.beginDelayedTransition(binding.root as ViewGroup)
-            if (progress != null && progress.totalFiles > 0) {
+            if (progress.totalFiles > 0) {
                 binding.progressBackup.visibility = View.VISIBLE
                 binding.txtProgressCount.visibility = View.VISIBLE
                 binding.txtCurrentFile.visibility = View.VISIBLE
-                binding.btnStartBackup.isEnabled = false
 
                 binding.progressBackup.max = progress.totalFiles
-                binding.progressBackup.progress = progress.uploadedFiles
-                
-                binding.txtProgressCount.text = "Uploading ${progress.uploadedFiles} of ${progress.totalFiles} files"
-                binding.txtCurrentFile.text = progress.currentFileName
+                binding.progressBackup.progress = progress.uploadedFiles + progress.skippedFiles
+
+                val skippedSuffix = if (progress.skippedFiles > 0) " (${progress.skippedFiles} skipped)" else ""
+                binding.txtProgressCount.text = "Processing ${progress.uploadedFiles + progress.skippedFiles} of ${progress.totalFiles} files$skippedSuffix"
+                binding.txtCurrentFile.text = progress.currentFileName ?: progress.status
             } else {
                 binding.progressBackup.visibility = View.GONE
                 binding.txtProgressCount.visibility = View.GONE
                 binding.txtCurrentFile.visibility = View.GONE
-                binding.btnStartBackup.isEnabled = true
             }
         }
 
-        // 🔗 Observe active activity log changes
+        // 📜 Observe activity logs and update RecyclerView adapter
         viewModel.activityLogs.observe(viewLifecycleOwner) { logs ->
             logsAdapter.updateLogs(logs)
         }
 
-        // 🔗 Observe Google account for UI state
+        // 👤 Observe account state to update UI buttons
         viewModel.googleAccount.observe(viewLifecycleOwner) { account ->
             if (account != null) {
-                binding.btnGoogleLogin.text = "Sign Out (${account.email})"
+                val email = account.email ?: "demo.user@gmail.com"
+                binding.btnGoogleLogin.text = "Sign Out ($email)"
                 binding.btnTestUpload.isEnabled = true
             } else {
                 binding.btnGoogleLogin.text = getString(R.string.btn_login_drive)
@@ -171,6 +176,13 @@ class BackupFragment : Fragment() {
             }
         }
 
+        // 💡 Long-press on login button for instant Demo Mode
+        binding.btnGoogleLogin.setOnLongClickListener {
+            viewModel.enableDemoMode()
+            Toast.makeText(requireContext(), "Demo Mode Activated (demo.user@gmail.com)!", Toast.LENGTH_SHORT).show()
+            true
+        }
+
         // 👆 Handle test upload button click
         binding.btnTestUpload.setOnClickListener {
             viewModel.testUpload()
@@ -184,61 +196,56 @@ class BackupFragment : Fragment() {
         val permissionsNeeded = mutableListOf<String>()
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            // Android 13+
             if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.READ_MEDIA_IMAGES) != PackageManager.PERMISSION_GRANTED) {
                 permissionsNeeded.add(Manifest.permission.READ_MEDIA_IMAGES)
             }
             if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.READ_MEDIA_VIDEO) != PackageManager.PERMISSION_GRANTED) {
                 permissionsNeeded.add(Manifest.permission.READ_MEDIA_VIDEO)
             }
+            if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.READ_MEDIA_AUDIO) != PackageManager.PERMISSION_GRANTED) {
+                permissionsNeeded.add(Manifest.permission.READ_MEDIA_AUDIO)
+            }
         } else {
-            // Android < 13
             if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
                 permissionsNeeded.add(Manifest.permission.READ_EXTERNAL_STORAGE)
             }
         }
 
-        when {
-            permissionsNeeded.isEmpty() -> {
-                viewModel.startBackup()
-            }
-            shouldShowRequestPermissionRationale(permissionsNeeded[0]) -> {
+        if (permissionsNeeded.isNotEmpty()) {
+            if (shouldShowRequestPermissionRationale(permissionsNeeded.first())) {
                 showPermissionRationaleDialog(permissionsNeeded.toTypedArray())
-            }
-            else -> {
+            } else {
                 requestPermissionLauncher.launch(permissionsNeeded.toTypedArray())
             }
+        } else {
+            viewModel.startBackup()
         }
     }
 
-    /**
-     * Shows a rationale dialog to the user explaining why permissions are needed.
-     */
     private fun showPermissionRationaleDialog(permissions: Array<String>) {
         AlertDialog.Builder(requireContext())
-            .setTitle(R.string.permission_required_title)
-            .setMessage(R.string.permission_rationale_storage)
-            .setPositiveButton(R.string.ok) { _, _ ->
+            .setTitle("Storage Permissions Required")
+            .setMessage("WABackupPro requires storage access to scan and back up your WhatsApp Business database and media files to Google Drive.")
+            .setPositiveButton("Grant Access") { _, _ ->
                 requestPermissionLauncher.launch(permissions)
             }
-            .setNegativeButton(R.string.cancel, null)
+            .setNegativeButton("Cancel", null)
             .show()
     }
 
-    /**
-     * Handles cases where the user denies permissions.
-     */
     private fun handlePermissionDenied() {
-        Snackbar.make(
-            binding.root,
-            R.string.permission_denied_message,
-            Snackbar.LENGTH_LONG
-        ).setAction(R.string.settings) {
-            val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
-                data = Uri.fromParts("package", requireContext().packageName, null)
-            }
-            startActivity(intent)
-        }.show()
+        if (!shouldShowRequestPermissionRationale(Manifest.permission.READ_EXTERNAL_STORAGE)) {
+            Snackbar.make(binding.root, "Permissions permanently denied. Please enable them in Settings.", Snackbar.LENGTH_LONG)
+                .setAction("Settings") {
+                    val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+                        data = Uri.fromParts("package", requireContext().packageName, null)
+                    }
+                    startActivity(intent)
+                }
+                .show()
+        } else {
+            Snackbar.make(binding.root, "Storage permission is required to scan WhatsApp files.", Snackbar.LENGTH_SHORT).show()
+        }
     }
 
     override fun onDestroyView() {
