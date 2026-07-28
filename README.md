@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="assets/Banner.png" alt="WABackupPro Banner" width="100%"/>
+  <img src="assets/Banner.jpg" alt="WABackupPro Banner" width="50%"/>
 </div>
 
 <br />
@@ -21,20 +21,14 @@ Automated background backups of WhatsApp Business databases and files to Google 
 
 ## Screens
 
-| SignIn | Dashboard | Story Bible |
+| Backup | History | Settings |
 |---|---|---|
-| ![SignIn](assets/screenshots/SignIn.png) | ![Dashboard](assets/screenshots/Dashboard.png) | ![Story Bible](assets/screenshots/StoryBible.png) |
+| ![Backup](assets/screenshots/Backup.jpg) | ![History](assets/screenshots/History.jpg) | ![Settings](assets/screenshots/Settings.jpg) |
 
-| ChapterGenerator | Plot and Outlines | Account Settings |
-|---|---|---|
-| ![ChapterGenerator](assets/screenshots/ChapterGenerator.png) | ![PlotOutlines](assets/screenshots/PlotOutlines.png) | ![AccountSettings](assets/screenshots/AccountSettings.png) |
 
 ---
 ## 🌐 Live Demo
 
-Experience the live deployment of NovelForge:
-
-🔗 **[https://www.novelforge.kpebble.com](https://www.novelforge.kpebble.com)**
 
 > [!TIP]
 > Click **"Explore Demo Sandbox"**
