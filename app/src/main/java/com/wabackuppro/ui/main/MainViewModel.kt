@@ -9,6 +9,8 @@ import androidx.lifecycle.viewModelScope
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import com.wabackuppro.data.local.AppDatabase
+import com.wabackuppro.data.local.entities.BackupFileResult
+import com.wabackuppro.data.local.entities.BackupRecord
 import com.wabackuppro.data.remote.DriveClient
 import com.wabackuppro.domain.models.BackupProgress
 import com.wabackuppro.domain.usecases.DetectChangedFilesUseCase
@@ -16,7 +18,7 @@ import com.wabackuppro.domain.usecases.RunBackupUseCase
 import com.wabackuppro.ui.settings.SettingsFragment
 import com.wabackuppro.utils.FileScanner
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -45,7 +47,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     )
 
     // 📊 Holds the current status of the backup operation
-    private val _backupStatus = MutableLiveData<String>("No backup run yet")
+    private val _backupStatus = MutableLiveData<String>("Ready for backup")
     val backupStatus: LiveData<String> = _backupStatus
 
     // 📈 Holds the real-time progress of the backup job
@@ -68,15 +70,101 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     private val dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
 
+    init {
+        // Automatically check and seed demo history if database is empty
+        viewModelScope.launch(Dispatchers.IO) {
+            val existing = backupRecordDao.getAll().firstOrNull()
+            if (existing.isNullOrEmpty()) {
+                seedDemoHistoryData()
+            }
+        }
+    }
+
     /**
      * Activates Demo / Screenshot Mode with a mock account (demo.user@gmail.com).
      */
     fun enableDemoMode(email: String = "demo.user@gmail.com") {
         val mockAccount = GoogleSignInAccount.createDefault()
-        // Reflect demo user in UI state
         _googleAccount.value = mockAccount
-        addLog("Signed in as $email (Demo Screenshot Mode)")
-        _backupStatus.value = "Signed in as $email (Demo Mode)"
+        addLog("Signed in as $email (Demo Mode Active)")
+        _backupStatus.value = "Signed in as $email (Demo Mode Active)"
+        
+        viewModelScope.launch(Dispatchers.IO) {
+            seedDemoHistoryData()
+        }
+    }
+
+    /**
+     * Seeds realistic historical backup records and file detail results into Room DB for demonstration.
+     */
+    suspend fun seedDemoHistoryData() {
+        val now = System.currentTimeMillis()
+        val dayMs = 24 * 60 * 60 * 1000L
+
+        // Record 1: Recent Partial Backup
+        val r1 = BackupRecord(
+            timestamp = now - (2 * 60 * 60 * 1000L), // 2 hours ago
+            folderName = "WABackup_2026-07-28",
+            totalFiles = 15,
+            successCount = 14,
+            failCount = 1,
+            driveFolderLink = "https://drive.google.com/drive/folders/demo_folder_1",
+            durationSeconds = 45,
+            uploadedFilesManifest = "8 docs · 4 photos · 2 videos · 1 voice note"
+        )
+        val id1 = backupRecordDao.insert(r1)
+
+        val r1Results = listOf(
+            BackupFileResult(backupRecordId = id1, fileName = "msgstore.db.crypt14", filePath = "/sdcard/WhatsApp Business/Media/msgstore.db.crypt14", category = "DOCUMENTS", status = "SUCCESS", errorMessage = null, sizeBytes = 45200000L),
+            BackupFileResult(backupRecordId = id1, fileName = "Invoice_JUL2026_001.pdf", filePath = "/sdcard/WhatsApp Business/Media/WhatsApp Documents/Invoice_JUL2026_001.pdf", category = "DOCUMENTS", status = "SUCCESS", errorMessage = null, sizeBytes = 1250000L),
+            BackupFileResult(backupRecordId = id1, fileName = "WhatsApp_Image_20260728_1200.jpg", filePath = "/sdcard/WhatsApp Business/Media/WhatsApp Images/IMG_1200.jpg", category = "IMAGES", status = "SUCCESS", errorMessage = null, sizeBytes = 3400000L),
+            BackupFileResult(backupRecordId = id1, fileName = "WhatsApp_Video_20260728_1205.mp4", filePath = "/sdcard/WhatsApp Business/Media/WhatsApp Video/VID_1205.mp4", category = "VIDEO", status = "SUCCESS", errorMessage = null, sizeBytes = 18500000L),
+            BackupFileResult(backupRecordId = id1, fileName = "PTT-20260728-WA0002.opus", filePath = "/sdcard/WhatsApp Business/Media/WhatsApp Voice Notes/PTT-0002.opus", category = "VOICE_NOTES", status = "SUCCESS", errorMessage = null, sizeBytes = 850000L),
+            BackupFileResult(backupRecordId = id1, fileName = "Company_Overview_Draft.docx", filePath = "/sdcard/WhatsApp Business/Media/WhatsApp Documents/Company_Overview_Draft.docx", category = "DOCUMENTS", status = "FAILED", errorMessage = "Upload timeout: Server responded 504 Gateway Timeout", sizeBytes = 2100000L)
+        )
+        backupFileResultDao.insertAll(r1Results)
+
+        // Record 2: Successful Friday Backup
+        val r2 = BackupRecord(
+            timestamp = now - (7 * dayMs), // 7 days ago
+            folderName = "WABackup_2026-07-21",
+            totalFiles = 142,
+            successCount = 142,
+            failCount = 0,
+            driveFolderLink = "https://drive.google.com/drive/folders/demo_folder_2",
+            durationSeconds = 112,
+            uploadedFilesManifest = "28 docs · 110 photos · 4 videos"
+        )
+        val id2 = backupRecordDao.insert(r2)
+
+        val r2Results = listOf(
+            BackupFileResult(backupRecordId = id2, fileName = "msgstore.db.crypt14", filePath = "/sdcard/WhatsApp Business/Media/msgstore.db.crypt14", category = "DOCUMENTS", status = "SUCCESS", errorMessage = null, sizeBytes = 44800000L),
+            BackupFileResult(backupRecordId = id2, fileName = "Client_Agreement_Signed.pdf", filePath = "/sdcard/WhatsApp Business/Media/WhatsApp Documents/Client_Agreement_Signed.pdf", category = "DOCUMENTS", status = "SUCCESS", errorMessage = null, sizeBytes = 3100000L),
+            BackupFileResult(backupRecordId = id2, fileName = "Product_Catalog_2026.pdf", filePath = "/sdcard/WhatsApp Business/Media/WhatsApp Documents/Product_Catalog_2026.pdf", category = "DOCUMENTS", status = "SKIPPED", errorMessage = null, sizeBytes = 8400000L),
+            BackupFileResult(backupRecordId = id2, fileName = "Banner_Design_HD.png", filePath = "/sdcard/WhatsApp Business/Media/WhatsApp Images/Banner_Design_HD.png", category = "IMAGES", status = "SUCCESS", errorMessage = null, sizeBytes = 5200000L)
+        )
+        backupFileResultDao.insertAll(r2Results)
+
+        // Record 3: Earlier Backup
+        val r3 = BackupRecord(
+            timestamp = now - (14 * dayMs), // 14 days ago
+            folderName = "WABackup_2026-07-14",
+            totalFiles = 98,
+            successCount = 98,
+            failCount = 0,
+            driveFolderLink = "https://drive.google.com/drive/folders/demo_folder_3",
+            durationSeconds = 78,
+            uploadedFilesManifest = "15 docs · 75 photos · 8 voice notes"
+        )
+        val id3 = backupRecordDao.insert(r3)
+
+        val r3Results = listOf(
+            BackupFileResult(backupRecordId = id3, fileName = "msgstore.db.crypt14", filePath = "/sdcard/WhatsApp Business/Media/msgstore.db.crypt14", category = "DOCUMENTS", status = "SUCCESS", errorMessage = null, sizeBytes = 42100000L),
+            BackupFileResult(backupRecordId = id3, fileName = "Meeting_Notes_Jul14.pdf", filePath = "/sdcard/WhatsApp Business/Media/WhatsApp Documents/Meeting_Notes_Jul14.pdf", category = "DOCUMENTS", status = "SUCCESS", errorMessage = null, sizeBytes = 950000L)
+        )
+        backupFileResultDao.insertAll(r3Results)
+
+        addLog("ℹ️ Pre-populated 3 historical backup records into database.")
     }
 
     /**
