@@ -44,7 +44,9 @@ class BackupWorker(
 
         // 🔄 Instantiate dependencies manually
         val db = AppDatabase.getDatabase(applicationContext)
+        val backupRecordDao = db.backupRecordDao()
         val backupFileEntryDao = db.backupFileEntryDao()
+        val backupFileResultDao = db.backupFileResultDao()
         val fileScanner = FileScanner(applicationContext)
         val driveClient = DriveClient(applicationContext)
         val detectChangedFilesUseCase = DetectChangedFilesUseCase(backupFileEntryDao)
@@ -53,7 +55,9 @@ class BackupWorker(
             fileScanner,
             driveClient,
             backupFileEntryDao,
-            detectChangedFilesUseCase
+            detectChangedFilesUseCase,
+            backupRecordDao,
+            backupFileResultDao
         )
 
         // 🔑 Fetch authenticated account

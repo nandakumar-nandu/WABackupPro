@@ -28,7 +28,9 @@ import java.time.format.DateTimeFormatter
 class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     private val db = AppDatabase.getDatabase(application)
+    private val backupRecordDao = db.backupRecordDao()
     private val backupFileEntryDao = db.backupFileEntryDao()
+    private val backupFileResultDao = db.backupFileResultDao()
     private val fileScanner = FileScanner(application)
     private val driveClient = DriveClient(application)
     private val detectChangedFilesUseCase = DetectChangedFilesUseCase(backupFileEntryDao)
@@ -37,7 +39,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         fileScanner,
         driveClient,
         backupFileEntryDao,
-        detectChangedFilesUseCase
+        detectChangedFilesUseCase,
+        backupRecordDao,
+        backupFileResultDao
     )
 
     // 📊 Holds the current status of the backup operation

@@ -16,18 +16,23 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-class HistoryAdapter : ListAdapter<BackupRecord, HistoryAdapter.ViewHolder>(BackupDiffCallback()) {
+class HistoryAdapter(
+    private val onItemClick: ((BackupRecord) -> Unit)? = null
+) : ListAdapter<BackupRecord, HistoryAdapter.ViewHolder>(BackupDiffCallback()) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val view = LayoutInflater.from(parent.context).inflate(R.layout.item_backup_record, parent, false)
-        return ViewHolder(view)
+        return ViewHolder(view, onItemClick)
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         holder.bind(getItem(position))
     }
 
-    class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+    class ViewHolder(
+        itemView: View,
+        private val onItemClick: ((BackupRecord) -> Unit)?
+    ) : RecyclerView.ViewHolder(itemView) {
         private val txtDate: TextView = itemView.findViewById(R.id.txt_date)
         private val badgeStatus: TextView = itemView.findViewById(R.id.badge_status)
         private val txtFilesCount: TextView = itemView.findViewById(R.id.txt_files_count)
@@ -41,7 +46,6 @@ class HistoryAdapter : ListAdapter<BackupRecord, HistoryAdapter.ViewHolder>(Back
             txtDate.text = dateFormat.format(Date(record.timestamp))
             txtFilesCount.text = "Files: ${record.totalFiles} (Success: ${record.successCount}, Failed: ${record.failCount})"
             
-            // Format per-category summary string (e.g., "12 docs · 340 photos · 8 videos")
             val summary = if (!record.uploadedFilesManifest.isNullOrEmpty()) {
                 record.uploadedFilesManifest
             } else {
@@ -70,6 +74,10 @@ class HistoryAdapter : ListAdapter<BackupRecord, HistoryAdapter.ViewHolder>(Back
                 }
             } else {
                 btnOpenDrive.visibility = View.GONE
+            }
+
+            itemView.setOnClickListener {
+                onItemClick?.invoke(record)
             }
         }
     }

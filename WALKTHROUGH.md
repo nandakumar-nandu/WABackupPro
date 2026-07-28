@@ -74,6 +74,20 @@ The application uses the **Google Drive REST API v3** combined with **Google Pla
 4. **Empty Selection Short-Circuiting**:
    - If a user deselects all categories, `RunBackupUseCase` short-circuits immediately with a friendly notice ("Nothing selected"), preventing unnecessary folder creation and API request overhead.
 
+## Reviewing Backup Details (Implementation v1.3.0)
+
+1. **Per-File Database Persistence**:
+   - Every file evaluated during a backup run (uploaded, skipped, or failed) is saved into Room DB table `backup_file_results` linked by foreign key `backupRecordId`.
+2. **Drill-Down Inspection**:
+   - Tapping any history record card in `BackupHistoryFragment` opens `BackupDetailFragment`.
+   - Displays a header card with backup timestamp, total duration, and direct Google Drive link, followed by a list of per-file outcomes with clear visual status indicators (`✅ SUCCESS`, `❌ FAILED`, `⏭️ SKIPPED`).
+3. **Single-File Retry Engine**:
+   - Tapping a `FAILED` item displays an error detail dialog showing the exact exception message.
+   - Clicking "Retry This File" invokes `DriveClient.uploadFile` for that specific item. Upon success, its status in `BackupFileResultDao` is updated from `FAILED` to `SUCCESS`, updating the UI reactively.
+4. **History Search & Filter Controls**:
+   - History screen features an interactive search bar (`et_search_history`) to search records by date or folder name.
+   - Four Material3 status filter chips (`All`, `Success`, `Partial Failures`, `Failed`) allow instant client-side list filtering without triggering redundant database re-queries.
+
 ## Running a Manual Backup (Implementation)
 
 1. **Triggering the Job**:
@@ -148,4 +162,4 @@ journey
 ```
 
 ---
-**This marks the complete architectural walkthrough of WABackupPro (v1.2.0)! 🚀**
+**This marks the complete architectural walkthrough of WABackupPro (v1.3.0)! 🚀**

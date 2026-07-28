@@ -1,6 +1,6 @@
 # Screen Tour: WABackupPro
 
-This document gives an overview of the screens configured in WABackupPro version 1.2.0.
+This document gives an overview of the screens configured in WABackupPro version 1.3.0.
 
 ## Complete Screens
 
@@ -33,15 +33,24 @@ This document gives an overview of the screens configured in WABackupPro version
   - **Progress Information**: Displays the current status of the upload (e.g. "Uploading msgstore.db.crypt14 (2 of 5)...").
   - **Service Priority**: Elevates the background worker to avoid being terminated by OS battery optimizations (Doze mode).
 
-### 4. Backup History Screen
-- **Purpose**: Displays a comprehensive, chronological list of all past backups retrieved from the local Room database.
+### 4. Backup History Screen & Interactive Search Filters
+- **Purpose**: Displays a comprehensive, chronological list of all past backups with real-time search and status filtering.
 - **Visual Structure**:
+  - **Search Input Bar**: An outlined text field (`et_search_history`) allowing live keyword or date filtering.
+  - **Status Filter Chips**: A horizontally scrollable `ChipGroup` featuring 4 selectable chips (`All`, `Success`, `Partial Failures`, `Failed`).
   - **RecyclerView**: A scrollable list displaying individual cards for each backup job.
-  - **Record Card**: Shows the formatted timestamp (e.g., Jul 18, 2026), file processing metrics (Success: 150, Failed: 0), total upload duration, and per-category breakdown text (e.g. `"12 docs · 340 photos · 8 videos"`).
-  - **Status Badge**: Visually indicates outcome with color coding (Green for SUCCESS/PARTIAL, Red for FAILED).
+  - **Record Card**: Shows the formatted timestamp (e.g., Jul 18, 2026), file processing metrics (Success: 150, Failed: 0), total upload duration, and per-category breakdown text.
   - **Action Link**: An "Open in Drive" text button that launches a browser or the Drive app to view the backed-up files.
 
-### 5. Settings Screen & Selective Category Panel
+### 5. Backup Detail Screen & Single-File Retry Dialog
+- **Purpose**: Provides drill-down inspection of individual file execution outcomes for any selected historical backup.
+- **Visual Structure**:
+  - **Header Bar**: Back navigation button and screen title.
+  - **Summary Card**: Displays parent backup execution date, overall status badge, processing metrics, category count summary, and a direct Google Drive link button.
+  - **File Outcomes List**: Displays a list of file result cards showing status icons (`✅ SUCCESS`, `❌ FAILED`, `⏭️ SKIPPED`), filename, category tag, and file size.
+  - **Failed Item Dialog**: Tapping a failed item opens an `AlertDialog` showing the exact exception message, equipped with an actionable "Retry This File" button.
+
+### 6. Settings Screen & Selective Category Panel
 - **Purpose**: The configuration hub for authentication, constraints, scheduling, category filtering, and delta detection overrides.
 - **Visual Structure**:
   - **Schedule Controls**: A labeled row with a button triggering an Android `TimePickerDialog` to set the Friday backup time.
@@ -64,6 +73,8 @@ graph TD
     MainActivity -->|Select Tab 2| HistoryFragment[Backup History]
     MainActivity -->|Select Tab 3| SettingsFragment[Settings Configuration]
     
+    HistoryFragment -->|Tap Backup Card| DetailFragment[Backup Detail Screen]
+    DetailFragment -->|Tap Failed File| RetryDialog[Error Dialog & Retry Button]
     BackupFragment -->|Click Start Backup| LogView[ViewModel Updates Logs List]
     BackupFragment -->|Drive Quota Full / Network Error| RetryButton[Show Retry Button]
     SettingsFragment -->|Toggle Categories| CatSwitch[Select / Deselect Media Types]

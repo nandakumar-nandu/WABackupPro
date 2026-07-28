@@ -33,6 +33,30 @@ graph TD
     Workers["WorkManager Background Job<br>(BackupWorker)"] -->|Triggers| UC
 ```
 
+### History → Detail → Single-File Retry Sequence Diagram
+```mermaid
+sequenceDiagram
+    participant User
+    participant HF as BackupHistoryFragment
+    participant DF as BackupDetailFragment
+    participant DB as BackupFileResultDao
+    participant DC as DriveClient
+
+    User->>HF: Tap History Record Card
+    HF->>DF: Navigate(recordId)
+    DF->>DB: getByBackupRecordId(recordId)
+    DB-->>DF: List<BackupFileResult>
+    DF-->>User: Render File Outcomes List (SUCCESS, SKIPPED, FAILED)
+    User->>DF: Tap FAILED File Item
+    DF-->>User: Display Exception Details Dialog
+    User->>DF: Tap "Retry This File"
+    DF->>DC: uploadFile(filePath, mimeType)
+    DC-->>DF: return fileId
+    DF->>DB: updateStatus(fileResultId, "SUCCESS")
+    DB-->>DF: Flow Updates UI
+    DF-->>User: Show Success Toast & Update Status Icon to ✅
+```
+
 ### Delta Detection & Incremental Backup Decision Tree
 ```mermaid
 graph TD
@@ -82,6 +106,8 @@ graph TD
 ### Room Database Entity-Relationship (ER) Diagram
 ```mermaid
 erDiagram
+    BACKUP_RECORDS ||--o{ BACKUP_FILE_RESULTS : "has many file outcomes"
+    
     BACKUP_RECORDS {
         Long id PK "Auto-generated primary key"
         Long timestamp "Unix epoch in milliseconds"
@@ -100,6 +126,17 @@ erDiagram
         Long lastModified "File modification epoch"
         String driveFileId "Google Drive file ID"
         Long lastBackedUpAt "Last backup epoch"
+    }
+
+    BACKUP_FILE_RESULTS {
+        Long id PK "Auto-generated primary key"
+        Long backupRecordId FK "Foreign key targeting BACKUP_RECORDS"
+        String fileName "Display filename"
+        String filePath "Absolute filesystem path"
+        String category "Backup category tag"
+        String status "Outcome status: SUCCESS, FAILED, SKIPPED"
+        String errorMessage "Error exception message"
+        Long sizeBytes "File size in bytes"
     }
 ```
 

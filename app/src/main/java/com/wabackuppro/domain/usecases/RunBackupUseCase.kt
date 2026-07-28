@@ -2,7 +2,11 @@ package com.wabackuppro.domain.usecases
 
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import com.wabackuppro.data.local.daos.BackupFileEntryDao
+import com.wabackuppro.data.local.daos.BackupFileResultDao
+import com.wabackuppro.data.local.daos.BackupRecordDao
 import com.wabackuppro.data.local.entities.BackupFileEntry
+import com.wabackuppro.data.local.entities.BackupFileResult
+import com.wabackuppro.data.local.entities.BackupRecord
 import com.wabackuppro.data.remote.DriveClient
 import com.wabackuppro.domain.models.BackupCategory
 import com.wabackuppro.domain.models.BackupFile
@@ -23,18 +27,16 @@ class AuthExpiredException(message: String) : Exception(message)
 class NoCategoriesSelectedException(message: String) : Exception(message)
 
 /**
- * RunBackupUseCase orchestrates the incremental backup workflow with delta detection and category filtering.
- * 
- * Why Incremental Delta Detection & Category Filtering is Critical:
- * - Skipping unchanged files and unselected categories dramatically reduces Google Drive API request quota consumption.
- * - Saves cellular/Wi-Fi data transfer volume and shortens execution duration.
- * - Significantly lowers battery power consumption during automated background scheduled runs.
+ * RunBackupUseCase orchestrates the incremental backup workflow with delta detection, category filtering,
+ * and per-file result persistence in Room DB.
  */
 class RunBackupUseCase(
     private val fileScanner: FileScanner,
     private val driveClient: DriveClient,
     private val backupFileEntryDao: BackupFileEntryDao? = null,
-    private val detectChangedFilesUseCase: DetectChangedFilesUseCase? = null
+    private val detectChangedFilesUseCase: DetectChangedFilesUseCase? = null,
+    private val backupRecordDao: BackupRecordDao? = null,
+    private val backupFileResultDao: BackupFileResultDao? = null
 ) {
 
     /**
@@ -50,12 +52,13 @@ class RunBackupUseCase(
         categories: Set<BackupCategory> = BackupCategory.values().toSet(),
         forceFullBackup: Boolean = false
     ): Flow<BackupProgress> = flow {
+        val startTime = System.currentTimeMillis()
         val errors = mutableListOf<String>()
+        val fileResults = mutableListOf<BackupFileResult>()
+
         emit(BackupProgress(status = "Initializing backup..."))
 
-        // 🚫 Empty Selection Short-Circuit:
-        // Short-circuiting when no categories are selected avoids creating empty folders in Google Drive,
-        // eliminates unneeded MediaStore queries, and saves cellular/Wi-Fi data transfer volume.
+        // 🚫 Empty Selection Short-Circuit
         if (categories.isEmpty()) {
             emit(BackupProgress(
                 status = "Nothing selected. Please enable at least one backup category in Settings.",
@@ -81,16 +84,18 @@ class RunBackupUseCase(
 
         // 📊 Step 2: Delta Detection (Categorize into new, modified, and unchanged)
         val filesToUpload: List<BackupFile>
+        val unchangedFiles: List<BackupFile>
         val skippedCount: Int
 
         if (!forceFullBackup && detectChangedFilesUseCase != null && backupFileEntryDao != null) {
             emit(BackupProgress(status = "Analyzing changed files (Delta Detection)...", totalFiles = totalFiles))
             val deltaResult = detectChangedFilesUseCase.execute(scannedFiles)
             filesToUpload = deltaResult.newFiles + deltaResult.modifiedFiles
-            skippedCount = deltaResult.unchangedFiles.size
+            unchangedFiles = deltaResult.unchangedFiles
+            skippedCount = unchangedFiles.size
         } else {
-            // Force Full Backup override active -> upload all files
             filesToUpload = scannedFiles
+            unchangedFiles = emptyList()
             skippedCount = 0
         }
 
@@ -133,20 +138,38 @@ class RunBackupUseCase(
             return@flow
         }
 
-        // 📤 Step 4: Upload new and modified files with retry logic
+        // Create initial parent BackupRecord in Room DB to obtain recordId for per-file FK linkage
+        val initialRecord = BackupRecord(
+            timestamp = startTime,
+            folderName = folderName,
+            totalFiles = totalFiles,
+            successCount = 0,
+            failCount = 0,
+            driveFolderLink = "https://drive.google.com/drive/folders/$folderId",
+            durationSeconds = 0,
+            uploadedFilesManifest = buildCategorySummary(scannedFiles)
+        )
+        
+        val recordId = backupRecordDao?.insert(initialRecord) ?: 0L
+
+        // Record SKIPPED results for unchanged files
+        for (file in unchangedFiles) {
+            fileResults.add(
+                BackupFileResult(
+                    backupRecordId = recordId,
+                    fileName = file.name,
+                    filePath = file.path,
+                    category = file.category.name,
+                    status = "SKIPPED",
+                    errorMessage = null,
+                    sizeBytes = file.size
+                )
+            )
+        }
+
+        // 📤 Step 4: Upload new and modified files
         var uploadedCount = 0
         val totalToUpload = filesToUpload.size
-
-        if (totalToUpload == 0) {
-            emit(BackupProgress(
-                totalFiles = totalFiles,
-                uploadedFiles = 0,
-                skippedFiles = skippedCount,
-                status = "All files are up to date! (Skipped $skippedCount unchanged files)",
-                errors = errors
-            ))
-            return@flow
-        }
 
         for (file in filesToUpload) {
             uploadedCount++
@@ -163,7 +186,6 @@ class RunBackupUseCase(
                 val driveFileId = uploadWithRetry(account, file.path, folderId, file.type, maxAttempts = 3)
 
                 if (driveFileId != null) {
-                    // Update/upsert local BackupFileEntry record in Room database for future delta scans
                     if (backupFileEntryDao != null && detectChangedFilesUseCase != null) {
                         val localFile = File(file.path)
                         val hash = detectChangedFilesUseCase.calculateSHA256(localFile)
@@ -178,6 +200,18 @@ class RunBackupUseCase(
                         )
                     }
 
+                    fileResults.add(
+                        BackupFileResult(
+                            backupRecordId = recordId,
+                            fileName = file.name,
+                            filePath = file.path,
+                            category = file.category.name,
+                            status = "SUCCESS",
+                            errorMessage = null,
+                            sizeBytes = file.size
+                        )
+                    )
+
                     emit(BackupProgress(
                         totalFiles = totalFiles,
                         uploadedFiles = uploadedCount,
@@ -187,10 +221,41 @@ class RunBackupUseCase(
                         errors = errors.toList()
                     ))
                 } else {
-                    errors.add("Failed to upload: ${file.name}")
+                    val errMsg = "Failed to upload: ${file.name}"
+                    errors.add(errMsg)
+
+                    fileResults.add(
+                        BackupFileResult(
+                            backupRecordId = recordId,
+                            fileName = file.name,
+                            filePath = file.path,
+                            category = file.category.name,
+                            status = "FAILED",
+                            errorMessage = errMsg,
+                            sizeBytes = file.size
+                        )
+                    )
                 }
             } catch (e: DriveStorageFullException) {
                 errors.add("Storage Full: ${e.message}")
+
+                fileResults.add(
+                    BackupFileResult(
+                        backupRecordId = recordId,
+                        fileName = file.name,
+                        filePath = file.path,
+                        category = file.category.name,
+                        status = "FAILED",
+                        errorMessage = "Drive Storage Full",
+                        sizeBytes = file.size
+                    )
+                )
+
+                // Persist collected file results before terminating
+                if (backupFileResultDao != null && recordId > 0) {
+                    backupFileResultDao.insertAll(fileResults)
+                }
+
                 emit(BackupProgress(
                     totalFiles = totalFiles,
                     uploadedFiles = uploadedCount - 1,
@@ -203,6 +268,28 @@ class RunBackupUseCase(
             } catch (e: IOException) {
                 throw e
             }
+        }
+
+        // Persist all per-file results into Room DB
+        if (backupFileResultDao != null && recordId > 0) {
+            backupFileResultDao.insertAll(fileResults)
+        }
+
+        // Finalize parent BackupRecord in Room DB
+        val endTime = System.currentTimeMillis()
+        val durationSeconds = ((endTime - startTime) / 1000L).coerceAtLeast(1L)
+        val successCount = fileResults.count { it.status == "SUCCESS" || it.status == "SKIPPED" }
+        val failCount = fileResults.count { it.status == "FAILED" }
+
+        if (backupRecordDao != null && recordId > 0) {
+            val updatedRecord = initialRecord.copy(
+                id = recordId,
+                successCount = successCount,
+                failCount = failCount,
+                durationSeconds = durationSeconds,
+                uploadedFilesManifest = buildCategorySummary(scannedFiles)
+            )
+            backupRecordDao.insert(updatedRecord)
         }
 
         val finalStatus = when {
@@ -221,8 +308,27 @@ class RunBackupUseCase(
     }
 
     /**
-     * Uploads a single file to Drive with a simple retry algorithm.
-     * Returns the uploaded Google Drive fileId, or null on failure.
+     * Builds a human-readable per-category count summary (e.g. "12 docs · 340 photos · 8 videos").
+     */
+    private fun buildCategorySummary(files: List<BackupFile>): String {
+        val docs = files.count { it.category == BackupCategory.DOCUMENTS }
+        val photos = files.count { it.category == BackupCategory.IMAGES }
+        val videos = files.count { it.category == BackupCategory.VIDEO }
+        val audio = files.count { it.category == BackupCategory.AUDIO }
+        val voice = files.count { it.category == BackupCategory.VOICE_NOTES }
+
+        val parts = mutableListOf<String>()
+        if (docs > 0) parts.add("$docs docs")
+        if (photos > 0) parts.add("$photos photos")
+        if (videos > 0) parts.add("$videos videos")
+        if (audio > 0) parts.add("$audio audio")
+        if (voice > 0) parts.add("$voice voice notes")
+
+        return if (parts.isEmpty()) "${files.size} files" else parts.joinToString(" · ")
+    }
+
+    /**
+     * Uploads a single file to Drive with retry logic.
      */
     private suspend fun uploadWithRetry(
         account: GoogleSignInAccount,

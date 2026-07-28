@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.3.0] - 2026-07-28 13:00
+
+### Added
+- **Per-File Result Tracking Persistence**: Created `BackupFileResult` entity and `BackupFileResultDao` (Room DB schema version 3) to record individual file outcomes (`SUCCESS`, `FAILED`, `SKIPPED`), error messages, and file sizes for every backup run.
+- **Backup Detail Screen**: Built `BackupDetailFragment` and `FileResultAdapter` allowing users to tap any history entry for drill-down visibility into individual file outcomes with status icons (`✅`, `❌`, `⏭️`).
+- **Single-File Retry Engine**: Added interactive single-file retry flow in `BackupDetailFragment` enabling users to re-upload individual failed items with automatic Room DB status updates.
+- **History Search & Filter Controls**: Enhanced `BackupHistoryFragment` with a search bar (`et_search_history`) and Material3 filter chips (`All`, `Success`, `Partial Failures`, `Failed`), evaluating queries reactively via Kotlin Flows.
+- **Documentation Updates**: Added Mermaid sequence diagram for History -> Detail -> Retry flow to `README.md`, updated `WALKTHROUGH.md`, and updated `SCREENTOUR.md`.
+
 ## [1.2.0] - 2026-07-28 12:55
 
 ### Added
