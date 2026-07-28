@@ -71,7 +71,7 @@
         style="@style/Widget.Material3.Button"
         android:layout_width="match_parent"
         android:layout_height="56dp"
-        android:layout_marginTop="20dp"
+        android:layout_marginTop="16dp"
         android:text="⚡ Start Backup Now"
         android:textSize="16sp"
         android:textStyle="bold"
@@ -87,7 +87,7 @@
         style="@style/Widget.Material3.Button"
         android:layout_width="match_parent"
         android:layout_height="56dp"
-        android:layout_marginTop="20dp"
+        android:layout_marginTop="16dp"
         android:text="Retry Backup"
         android:textSize="16sp"
         android:textStyle="bold"
@@ -105,7 +105,7 @@
         android:id="@+id/progress_backup"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
+        android:layout_marginTop="12dp"
         android:visibility="gone"
         app:trackCornerRadius="8dp"
         app:layout_constraintTop_toBottomOf="@id/btn_start_backup"
@@ -118,7 +118,7 @@
         android:id="@+id/txt_progress_count"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
+        android:layout_marginTop="6dp"
         android:textAppearance="?attr/textAppearanceBodySmall"
         android:textColor="?attr/colorPrimary"
         android:visibility="gone"
@@ -131,7 +131,7 @@
         android:id="@+id/txt_current_file"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="4dp"
+        android:layout_marginTop="2dp"
         android:ellipsize="middle"
         android:singleLine="true"
         android:textAppearance="?attr/textAppearanceLabelSmall"
@@ -143,18 +143,81 @@
         tools:text="msgstore.db.crypt14"
         tools:visibility="visible" />
 
+    <!-- Modern Inline Demo Mode Banner Card -->
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/card_demo_banner"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:visibility="gone"
+        app:cardCornerRadius="16dp"
+        app:cardElevation="2dp"
+        app:cardBackgroundColor="?attr/colorTertiaryContainer"
+        app:strokeWidth="0dp"
+        app:layout_constraintTop_toBottomOf="@id/txt_current_file"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        tools:visibility="visible">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="⚡ Switch to Demo Mode"
+                android:textAppearance="?attr/textAppearanceTitleSmall"
+                android:textColor="?attr/colorOnTertiaryContainer"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/txt_demo_banner_desc"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="Google Cloud OAuth requires registering your SHA-1 signature. Tap below to use Demo Account for full offline testing &amp; screenshots."
+                android:textAppearance="?attr/textAppearanceBodySmall"
+                android:textColor="?attr/colorOnTertiaryContainer" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_banner_enable_demo"
+                style="@style/Widget.Material3.Button.TonalButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="Enable Demo Account"
+                app:cornerRadius="10dp" />
+        </LinearLayout>
+    </com.google.android.material.card.MaterialCardView>
+
     <!-- Action Buttons Row -->
     <com.google.android.material.button.MaterialButton
         android:id="@+id/btn_google_login"
         style="@style/Widget.Material3.Button.OutlinedButton"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:layout_marginEnd="6dp"
+        android:layout_marginTop="12dp"
+        android:layout_marginEnd="4dp"
         android:text="@string/btn_login_drive"
         app:cornerRadius="12dp"
-        app:layout_constraintTop_toBottomOf="@id/txt_current_file"
+        app:layout_constraintTop_toBottomOf="@id/card_demo_banner"
         app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/btn_quick_demo" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btn_quick_demo"
+        style="@style/Widget.Material3.Button.TonalButton"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="4dp"
+        android:layout_marginEnd="4dp"
+        android:text="⚡ Demo Mode"
+        app:cornerRadius="12dp"
+        app:layout_constraintTop_toTopOf="@id/btn_google_login"
+        app:layout_constraintStart_toEndOf="@id/btn_google_login"
         app:layout_constraintEnd_toStartOf="@+id/btn_test_upload" />
 
     <com.google.android.material.button.MaterialButton
@@ -162,11 +225,11 @@
         style="@style/Widget.Material3.Button.OutlinedButton"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginStart="6dp"
-        android:text="@string/btn_test_upload"
+        android:layout_marginStart="4dp"
+        android:text="Test"
         app:cornerRadius="12dp"
         app:layout_constraintTop_toTopOf="@id/btn_google_login"
-        app:layout_constraintStart_toEndOf="@id/btn_google_login"
+        app:layout_constraintStart_toEndOf="@id/btn_quick_demo"
         app:layout_constraintEnd_toEndOf="parent" />
 
     <!-- Activity Log Header -->
@@ -174,7 +237,7 @@
         android:id="@+id/txt_logs_header"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="20dp"
+        android:layout_marginTop="16dp"
         android:text="Activity Audit Logs"
         android:textAppearance="?attr/textAppearanceTitleMedium"
         android:textColor="?attr/colorOnSurface"
@@ -187,7 +250,7 @@
         android:id="@+id/recycler_view_logs"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_marginTop="10dp"
+        android:layout_marginTop="8dp"
         app:layout_constraintTop_toBottomOf="@id/txt_logs_header"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"

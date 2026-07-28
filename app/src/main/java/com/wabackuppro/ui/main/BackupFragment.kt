@@ -25,16 +25,14 @@ import com.wabackuppro.databinding.FragmentBackupBinding
 
 /**
  * BackupFragment displays the current backup status card, exposes a trigger
- * action button, and lists the active operation logs.
+ * action button, inline Demo Banner card, and lists operation logs.
  */
 class BackupFragment : Fragment() {
 
     private var _binding: FragmentBackupBinding? = null
     private val binding get() = _binding!!
 
-    // 🔄 Share the ViewModel scoped to the parent Activity
     private val viewModel: MainViewModel by activityViewModels()
-    
     private lateinit var logsAdapter: LogsAdapter
 
     // 🛡️ Permission Request Launcher
@@ -58,25 +56,20 @@ class BackupFragment : Fragment() {
             try {
                 val account = task.getResult(Exception::class.java)
                 viewModel.updateAccount(account)
+                if (_binding != null) {
+                    binding.cardDemoBanner.visibility = View.GONE
+                }
             } catch (e: Exception) {
-                showSignInError("Exception during sign-in: ${e.message}\nIf this is an ApiException (like code 10), your exported APK's SHA-1 fingerprint is not registered in the Google Cloud Console.")
+                showSignInBanner()
             }
         } else {
-            showSignInError("Sign-in cancelled or failed (Result Code: ${result.resultCode}).\nThis usually means the Google Cloud OAuth 2.0 client ID is missing the SHA-1 signature of the APK you just installed.")
+            showSignInBanner()
         }
     }
 
-    private fun showSignInError(error: String) {
-        AlertDialog.Builder(requireContext())
-            .setTitle("Google Sign-In Failed")
-            .setMessage("$error\n\nWould you like to enable Demo Mode (demo.user@gmail.com) for testing and taking screenshots?")
-            .setPositiveButton("Use Demo Mode") { dialog, _ ->
-                viewModel.enableDemoMode()
-                Toast.makeText(requireContext(), "Demo Mode Activated!", Toast.LENGTH_SHORT).show()
-                dialog.dismiss()
-            }
-            .setNegativeButton("Cancel", null)
-            .show()
+    private fun showSignInBanner() {
+        if (_binding == null) return
+        binding.cardDemoBanner.visibility = View.VISIBLE
     }
 
     override fun onCreateView(
@@ -90,15 +83,15 @@ class BackupFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // 🛠️ Set up RecyclerView with LayoutManager and Adapter
         logsAdapter = LogsAdapter()
         binding.recyclerViewLogs.apply {
             layoutManager = LinearLayoutManager(requireContext())
             adapter = logsAdapter
         }
 
-        // 🔗 Observe backup status messages
+        // Observe backup status messages safely
         viewModel.backupStatus.observe(viewLifecycleOwner) { status ->
+            if (_binding == null) return@observe
             android.transition.TransitionManager.beginDelayedTransition(binding.cardBackupStatus)
             binding.txtStatusPlaceholder.text = status
             
@@ -111,8 +104,9 @@ class BackupFragment : Fragment() {
             }
         }
 
-        // 📊 Observe real-time progress updates
+        // Observe real-time progress updates safely
         viewModel.backupProgress.observe(viewLifecycleOwner) { progress ->
+            if (_binding == null) return@observe
             if (progress.totalFiles > 0) {
                 binding.progressBackup.visibility = View.VISIBLE
                 binding.txtProgressCount.visibility = View.VISIBLE
@@ -131,43 +125,45 @@ class BackupFragment : Fragment() {
             }
         }
 
-        // 📜 Observe activity logs and update RecyclerView adapter
+        // Observe activity logs
         viewModel.activityLogs.observe(viewLifecycleOwner) { logs ->
+            if (_binding == null) return@observe
             logsAdapter.updateLogs(logs)
         }
 
-        // 👤 Observe account state to update UI buttons
+        // Observe account state
         viewModel.googleAccount.observe(viewLifecycleOwner) { account ->
+            if (_binding == null) return@observe
             if (account != null) {
                 val email = account.email ?: "demo.user@gmail.com"
                 binding.btnGoogleLogin.text = "Sign Out ($email)"
                 binding.btnTestUpload.isEnabled = true
+                binding.cardDemoBanner.visibility = View.GONE
             } else {
                 binding.btnGoogleLogin.text = getString(R.string.btn_login_drive)
                 binding.btnTestUpload.isEnabled = false
             }
         }
 
-        // 🔗 Observe file count for UI feedback
+        // Observe file count feedback
         viewModel.discoveredFilesCount.observe(viewLifecycleOwner) { count ->
+            if (_binding == null) return@observe
             if (count > 0) {
                 Snackbar.make(binding.root, "Discovered $count files to backup", Snackbar.LENGTH_SHORT).show()
             }
         }
 
-        // 👆 Handle start backup button click
+        // Button Click Handlers
         binding.btnStartBackup.setOnClickListener {
             checkPermissionsAndStart()
         }
 
-        // 👆 Handle retry backup button click
         binding.btnRetryBackup.setOnClickListener {
             binding.btnRetryBackup.visibility = View.GONE
             binding.btnStartBackup.visibility = View.VISIBLE
             checkPermissionsAndStart()
         }
 
-        // 👆 Handle login/logout button click
         binding.btnGoogleLogin.setOnClickListener {
             if (viewModel.googleAccount.value == null) {
                 signInLauncher.launch(viewModel.getSignInIntent())
@@ -176,22 +172,23 @@ class BackupFragment : Fragment() {
             }
         }
 
-        // 💡 Long-press on login button for instant Demo Mode
-        binding.btnGoogleLogin.setOnLongClickListener {
+        binding.btnQuickDemo.setOnClickListener {
             viewModel.enableDemoMode()
+            binding.cardDemoBanner.visibility = View.GONE
             Toast.makeText(requireContext(), "Demo Mode Activated (demo.user@gmail.com)!", Toast.LENGTH_SHORT).show()
-            true
         }
 
-        // 👆 Handle test upload button click
+        binding.btnBannerEnableDemo.setOnClickListener {
+            viewModel.enableDemoMode()
+            binding.cardDemoBanner.visibility = View.GONE
+            Toast.makeText(requireContext(), "Demo Mode Activated!", Toast.LENGTH_SHORT).show()
+        }
+
         binding.btnTestUpload.setOnClickListener {
             viewModel.testUpload()
         }
     }
 
-    /**
-     * Checks for necessary storage permissions before triggering the backup scan.
-     */
     private fun checkPermissionsAndStart() {
         val permissionsNeeded = mutableListOf<String>()
 

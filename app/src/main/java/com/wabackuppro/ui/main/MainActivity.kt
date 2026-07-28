@@ -3,12 +3,13 @@ package com.wabackuppro.ui.main
 import android.os.Bundle
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentManager
 import com.wabackuppro.R
 import com.wabackuppro.databinding.ActivityMainBinding
 import com.wabackuppro.ui.history.BackupHistoryFragment
 import com.wabackuppro.ui.settings.SettingsFragment
-import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 
 /**
  * MainActivity is the single activity hosting the main navigation flows:
@@ -50,8 +51,10 @@ class MainActivity : AppCompatActivity() {
 
     /**
      * Swaps the active fragment loaded inside the container view.
+     * Clears backstack entries to prevent navigation crashes when switching between main tabs.
      */
     private fun loadFragment(fragment: Fragment) {
+        supportFragmentManager.popBackStackImmediate(null, FragmentManager.POP_BACK_STACK_INCLUSIVE)
         supportFragmentManager.beginTransaction()
             .replace(R.id.nav_host_fragment, fragment)
             .commit()
