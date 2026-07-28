@@ -47,7 +47,7 @@ class BackupHistoryFragment : Fragment() {
         historyAdapter = HistoryAdapter { record ->
             val detailFragment = BackupDetailFragment.newInstance(record.id)
             parentFragmentManager.beginTransaction()
-                .replace(R.id.fragment_container, detailFragment)
+                .replace(R.id.nav_host_fragment, detailFragment)
                 .addToBackStack(null)
                 .commit()
         }

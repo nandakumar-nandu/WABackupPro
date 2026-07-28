@@ -1,11 +1,86 @@
-# WABackupPro
+<div align="center">
+  <img src="assets/Banner.png" alt="WABackupPro Banner" width="100%"/>
+</div>
 
-![Kotlin](https://img.shields.io/badge/kotlin-%237F52FF.svg?style=for-the-badge&logo=kotlin&logoColor=white) ![Android](https://img.shields.io/badge/Android-3DDC84?style=for-the-badge&logo=android&logoColor=white) ![Google Drive API](https://img.shields.io/badge/Google%20Drive-4285F4?style=for-the-badge&logo=googledrive&logoColor=white) ![WorkManager](https://img.shields.io/badge/WorkManager-v2.9.0-green?style=for-the-badge) ![Room](https://img.shields.io/badge/Room-v2.6.1-blue?style=for-the-badge)
+<br />
 
 Automated background backups of WhatsApp Business databases and files to Google Drive.
 
-## App Concept
 **WABackupPro** is designed to provide secure, automated backups of WhatsApp Business database files (e.g., `msgstore.db.crypt14`) and media assets directly to a user's Google Drive account. Utilizing WorkManager for reliable background job execution, Room for storing audit history logs and SHA-256 delta manifests, and the Google Drive REST API, the application runs incrementally in the background without affecting daily productivity.
+
+
+
+
+## Technical Stack
+
+
+
+![Kotlin](https://img.shields.io/badge/kotlin-%237F52FF.svg?style=for-the-badge&logo=kotlin&logoColor=white) ![Android](https://img.shields.io/badge/Android-3DDC84?style=for-the-badge&logo=android&logoColor=white) ![Google Drive API](https://img.shields.io/badge/Google%20Drive-4285F4?style=for-the-badge&logo=googledrive&logoColor=white) ![WorkManager](https://img.shields.io/badge/WorkManager-v2.9.0-green?style=for-the-badge) ![Room](https://img.shields.io/badge/Room-v2.6.1-blue?style=for-the-badge)
+
+---
+
+## Screens
+
+| SignIn | Dashboard | Story Bible |
+|---|---|---|
+| ![SignIn](assets/screenshots/SignIn.png) | ![Dashboard](assets/screenshots/Dashboard.png) | ![Story Bible](assets/screenshots/StoryBible.png) |
+
+| ChapterGenerator | Plot and Outlines | Account Settings |
+|---|---|---|
+| ![ChapterGenerator](assets/screenshots/ChapterGenerator.png) | ![PlotOutlines](assets/screenshots/PlotOutlines.png) | ![AccountSettings](assets/screenshots/AccountSettings.png) |
+
+---
+## 🌐 Live Demo
+
+Experience the live deployment of NovelForge:
+
+🔗 **[https://www.novelforge.kpebble.com](https://www.novelforge.kpebble.com)**
+
+> [!TIP]
+> Click **"Explore Demo Sandbox"**
+
+
+---
+## Setup Prerequisites
+
+To set up and run this application locally, you will need:
+
+1. **Android Studio**: Android Studio Iguana (2023.2.1) or newer.
+2. **Android SDK**: API level 26 (Android 8.0) minimum, compiled and targeted to API level 34 (Android 14.0).
+3. **Java Development Kit**: JDK 17 (set as Gradle JDK in Android Studio settings).
+
+### 1. Google Cloud Console Setup
+To enable Google Sign-In and Google Drive API integration:
+1. Go to the [Google Cloud Console](https://console.cloud.google.com/).
+2. Create a new Project (e.g., "WABackupPro").
+3. Navigate to **APIs & Services > Library**.
+4. Search for **Google Drive API** and click **Enable**.
+5. Navigate to **APIs & Services > OAuth consent screen**.
+   - Set User Type to **External**.
+   - Add `.../auth/drive.file` scope (allows app to access only files it creates).
+6. Navigate to **APIs & Services > Credentials**.
+7. Click **Create Credentials** > **OAuth client ID**.
+8. Select **Android** as the application type.
+9. Enter your package name (`com.wabackuppro`) and your debug/release **SHA-1 certificate fingerprint**.
+10. *(Optional for Web/Backend)* Create another OAuth client ID of type **Web application** and copy the Client ID. Place this in your `local.properties` file as `google.web.client.id`.
+
+### 2. Local Environment Setup
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/nandakumar-nandu/WABackupPro.git
+   ```
+2. Create a `local.properties` file in the root project directory (use `local.properties.example` as a reference):
+   ```properties
+   google.web.client.id=YOUR_WEB_CLIENT_ID_HERE
+   ```
+3. Copy `.env.example` to `.env` if you need to configure additional runtime variables.
+4. Sync Gradle and build the project in Android Studio.
+
+## Contribution
+
+This project is fully built and maintained. 🚀 
+To report issues or suggest features, feel free to open a GitHub Issue!
+
 
 ## Backup Categories Mapping Table
 
@@ -190,42 +265,3 @@ sequenceDiagram
     VM-->>User: Show Success Notification
 ```
 
-## Setup Prerequisites
-
-To set up and run this application locally, you will need:
-
-1. **Android Studio**: Android Studio Iguana (2023.2.1) or newer.
-2. **Android SDK**: API level 26 (Android 8.0) minimum, compiled and targeted to API level 34 (Android 14.0).
-3. **Java Development Kit**: JDK 17 (set as Gradle JDK in Android Studio settings).
-
-### 1. Google Cloud Console Setup
-To enable Google Sign-In and Google Drive API integration:
-1. Go to the [Google Cloud Console](https://console.cloud.google.com/).
-2. Create a new Project (e.g., "WABackupPro").
-3. Navigate to **APIs & Services > Library**.
-4. Search for **Google Drive API** and click **Enable**.
-5. Navigate to **APIs & Services > OAuth consent screen**.
-   - Set User Type to **External**.
-   - Add `.../auth/drive.file` scope (allows app to access only files it creates).
-6. Navigate to **APIs & Services > Credentials**.
-7. Click **Create Credentials** > **OAuth client ID**.
-8. Select **Android** as the application type.
-9. Enter your package name (`com.wabackuppro`) and your debug/release **SHA-1 certificate fingerprint**.
-10. *(Optional for Web/Backend)* Create another OAuth client ID of type **Web application** and copy the Client ID. Place this in your `local.properties` file as `google.web.client.id`.
-
-### 2. Local Environment Setup
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/nandakumar-nandu/WABackupPro.git
-   ```
-2. Create a `local.properties` file in the root project directory (use `local.properties.example` as a reference):
-   ```properties
-   google.web.client.id=YOUR_WEB_CLIENT_ID_HERE
-   ```
-3. Copy `.env.example` to `.env` if you need to configure additional runtime variables.
-4. Sync Gradle and build the project in Android Studio.
-
-## Contribution
-
-This project is fully built and maintained. 🚀 
-To report issues or suggest features, feel free to open a GitHub Issue!
