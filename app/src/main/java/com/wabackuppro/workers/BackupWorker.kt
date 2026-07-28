@@ -12,8 +12,11 @@ import androidx.work.ForegroundInfo
 import androidx.work.WorkerParameters
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.wabackuppro.R
+import com.wabackuppro.data.local.AppDatabase
 import com.wabackuppro.data.remote.DriveClient
+import com.wabackuppro.domain.usecases.DetectChangedFilesUseCase
 import com.wabackuppro.domain.usecases.RunBackupUseCase
+import com.wabackuppro.ui.settings.SettingsFragment
 import com.wabackuppro.utils.FileScanner
 import kotlinx.coroutines.flow.collect
 
@@ -40,19 +43,31 @@ class BackupWorker(
         setForeground(createForegroundInfo("Starting automatic backup..."))
 
         // 🔄 Instantiate dependencies manually (since no DI framework is used)
+        val db = AppDatabase.getDatabase(applicationContext)
+        val backupFileEntryDao = db.backupFileEntryDao()
         val fileScanner = FileScanner(applicationContext)
         val driveClient = DriveClient(applicationContext)
-        val useCase = RunBackupUseCase(fileScanner, driveClient)
+        val detectChangedFilesUseCase = DetectChangedFilesUseCase(backupFileEntryDao)
+        
+        val useCase = RunBackupUseCase(
+            fileScanner,
+            driveClient,
+            backupFileEntryDao,
+            detectChangedFilesUseCase
+        )
 
         // 🔑 Fetch authenticated account
         val account = GoogleSignIn.getLastSignedInAccount(applicationContext)
             ?: return Result.failure() // Cannot proceed without an account
 
+        val prefs = applicationContext.getSharedPreferences(SettingsFragment.PREFS_NAME, Context.MODE_PRIVATE)
+        val forceFullBackup = prefs.getBoolean(SettingsFragment.PREF_FORCE_FULL_BACKUP, false)
+
         var isSuccess = true
 
         try {
             // 🚀 Execute the backup and collect progress updates
-            useCase.execute(account).collect { progress ->
+            useCase.execute(account, forceFullBackup).collect { progress ->
                 // Update the notification with the current progress
                 setForeground(createForegroundInfo(progress.status))
                 

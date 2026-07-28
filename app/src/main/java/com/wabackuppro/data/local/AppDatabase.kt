@@ -4,16 +4,24 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import com.wabackuppro.data.local.daos.BackupFileEntryDao
 import com.wabackuppro.data.local.daos.BackupRecordDao
+import com.wabackuppro.data.local.entities.BackupFileEntry
 import com.wabackuppro.data.local.entities.BackupRecord
 
 /**
  * AppDatabase provides the main entry point to the Room database.
+ * Updated to version 2 to support incremental backup delta entries.
  */
-@Database(entities = [BackupRecord::class], version = 1, exportSchema = false)
+@Database(
+    entities = [BackupRecord::class, BackupFileEntry::class],
+    version = 2,
+    exportSchema = false
+)
 abstract class AppDatabase : RoomDatabase() {
 
     abstract fun backupRecordDao(): BackupRecordDao
+    abstract fun backupFileEntryDao(): BackupFileEntryDao
 
     companion object {
         @Volatile
@@ -25,7 +33,9 @@ abstract class AppDatabase : RoomDatabase() {
                     context.applicationContext,
                     AppDatabase::class.java,
                     "wabackuppro_database"
-                ).build()
+                )
+                .fallbackToDestructiveMigration()
+                .build()
                 INSTANCE = instance
                 instance
             }

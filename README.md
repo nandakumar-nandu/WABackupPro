@@ -5,7 +5,7 @@
 Automated background backups of WhatsApp Business databases and files to Google Drive.
 
 ## App Concept
-**WABackupPro** is designed to provide secure, automated backups of WhatsApp Business database files (e.g., `msgstore.db.crypt14`) and media assets directly to a user's Google Drive account. Utilizing WorkManager for reliable background job execution, Room for storing audit history logs, and the Google Drive REST API, the application runs incrementally in the background without affecting daily productivity.
+**WABackupPro** is designed to provide secure, automated backups of WhatsApp Business database files (e.g., `msgstore.db.crypt14`) and media assets directly to a user's Google Drive account. Utilizing WorkManager for reliable background job execution, Room for storing audit history logs and SHA-256 delta manifests, and the Google Drive REST API, the application runs incrementally in the background without affecting daily productivity.
 
 ## Architecture
 
@@ -15,11 +15,28 @@ This application adheres to **MVVM + Clean Architecture** guidelines to decouple
 ```mermaid
 graph TD
     UI["UI Layer<br>(MainActivity, Fragment, components)"] -->|Observes state| VM["ViewModel Layer<br>(MainViewModel)"]
-    VM -->|Triggers| UC["Use Cases Layer<br>(StartBackupUseCase)"]
+    VM -->|Triggers| UC["Use Cases Layer<br>(StartBackupUseCase / RunBackupUseCase)"]
+    UC -->|Checks delta| DeltaUC["Delta Detection UseCase<br>(DetectChangedFilesUseCase)"]
     UC -->|Interacts| Repo["Repository Layer<br>(BackupRepository)"]
     Repo -->|Queries / Inserts| Local["Local Database<br>(Room Database / SQLite)"]
     Repo -->|Uploads / Authenticates| Remote["Remote Storage API<br>(Google Drive Client)"]
     Workers["WorkManager Background Job<br>(BackupWorker)"] -->|Triggers| UC
+```
+
+### Delta Detection & Incremental Backup Decision Tree
+```mermaid
+graph TD
+    Start([Discovered Local File]) --> ForceCheck{Force Full Backup Enabled?}
+    ForceCheck -- Yes --> Upload[Upload File to Google Drive]
+    ForceCheck -- No --> DBCheck{Exists in BackupFileEntry DB?}
+    DBCheck -- No (New File) --> CalcHash[Calculate SHA-256 Hash]
+    DBCheck -- Yes --> CalcHash
+    CalcHash --> HashCompare{SHA-256 Hash Matches DB?}
+    HashCompare -- Yes (Unchanged) --> Skip[Skip Upload & Increment Skipped Count]
+    HashCompare -- No (Modified) --> Upload
+    Upload --> UpdateDB[Upsert BackupFileEntry Record to Room DB]
+    UpdateDB --> NextFile([Process Next File])
+    Skip --> NextFile
 ```
 
 ### Automatic WorkManager Scheduling Flow
@@ -32,7 +49,8 @@ graph TD
     Constraint -- Not Met --> Waiting[Wait for conditions]
     Constraint -- Met --> Worker[BackupWorker runs]
     Worker --> Foreground[Promote to Foreground Service]
-    Foreground --> UseCase[RunBackupUseCase executes]
+    Worker --> DeltaCheck[Perform Delta Scan]
+    DeltaCheck --> UseCase[RunBackupUseCase executes]
 ```
 
 ### Backup Workflow Flowchart
@@ -40,12 +58,12 @@ graph TD
 graph TD
     Start([Scheduled Job Triggered]) --> CheckNetwork{Wi-Fi Available?}
     CheckNetwork -- No --> Reschedule[Reschedule Backup]
-    CheckNetwork -- Yes --> FetchData[Fetch WhatsApp Business Database]
-    FetchData --> Encrypt[Encrypt Backup File]
-    Encrypt --> Authenticate{Authenticate Google Account}
+    CheckNetwork -- Yes --> FetchData[Fetch WhatsApp Business Files]
+    FetchData --> DeltaScan[Detect Changed Files via SHA-256]
+    DeltaScan --> Authenticate{Authenticate Google Account}
     Authenticate -- Failed --> LogError[Log Error & Notify User]
-    Authenticate -- Success --> Upload[Upload Backup to Drive]
-    Upload -- Success --> SaveRecord[Save Success Record to Room]
+    Authenticate -- Success --> Upload[Upload Changed Files to Drive]
+    Upload -- Success --> SaveRecord[Save Record & Hashes to Room]
     Upload -- Failed --> SaveFailedRecord[Save Failed Record to Room]
     SaveRecord --> Complete([Backup Complete])
     SaveFailedRecord --> NotifyFail[Notify User]
@@ -63,6 +81,15 @@ erDiagram
         Int failCount "Failed files"
         String driveFolderLink "Web link to Drive folder"
         Long durationSeconds "Total backup time"
+        String uploadedFilesManifest "JSON manifest reference"
+    }
+
+    BACKUP_FILE_ENTRIES {
+        String filePath PK "Absolute filesystem path"
+        String contentHash "SHA-256 hash string"
+        Long lastModified "File modification epoch"
+        String driveFileId "Google Drive file ID"
+        Long lastBackedUpAt "Last backup epoch"
     }
 ```
 
@@ -87,27 +114,30 @@ sequenceDiagram
     participant User
     participant VM as MainViewModel
     participant UC as RunBackupUseCase
+    participant DCUC as DetectChangedFilesUseCase
     participant FS as FileScanner
     participant DC as DriveClient
     participant MS as MediaStore / Drive API
 
     User->>VM: Click "Start Backup"
-    VM->>UC: execute(account)
+    VM->>UC: execute(account, forceFullBackup)
     UC->>FS: scanWhatsAppBusinessFiles()
     FS->>MS: Query MediaStore
     MS-->>FS: File List
     FS-->>UC: List<BackupFile>
+    UC->>DCUC: execute(scannedFiles)
+    DCUC-->>UC: DeltaScanResult (New, Modified, Unchanged)
     UC->>DC: createFolder("WABackup_YYYY-MM-DD")
     DC->>MS: Drive API (POST Folder)
     MS-->>DC: folderId
     DC-->>UC: folderId
-    loop For each file
+    loop For each new or modified file
         UC->>DC: uploadFile(file, folderId)
         DC->>MS: Drive API (POST File)
         MS-->>DC: fileId (Success/Retry)
         DC-->>UC: progressUpdate()
-        UC-->>VM: Emit(BackupProgress)
-        VM-->>User: Update UI Progress Bar
+        UC-->>VM: Emit(BackupProgress with skippedFiles)
+        VM-->>User: Update UI Progress Bar & Skipped Counter
     end
     UC-->>VM: emit(Complete)
     VM-->>User: Show Success Notification

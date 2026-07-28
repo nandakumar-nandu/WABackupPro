@@ -49,6 +49,19 @@ The application uses the **Google Drive REST API v3** combined with **Google Pla
    - Each run inserts a status entry (`SUCCESS` or `FAILED`) into the Room database.
    - The main dashboard updates the status card and recyclerView log list in real-time.
 
+## Incremental Backups (Implementation v1.1.0)
+
+1. **SHA-256 Content Hashing**:
+   - `DetectChangedFilesUseCase` calculates a SHA-256 cryptographic hash for every discovered WhatsApp file payload rather than relying on modification dates alone.
+   - **Why?** Modification timestamps can be misleading due to device clock drift, timezone shifts, or file copying actions. Cryptographic content hashing guarantees strict integrity verification.
+2. **Delta Categorization**:
+   - Files are categorized into three buckets: `newFiles`, `modifiedFiles`, and `unchangedFiles`.
+   - `unchangedFiles` are skipped, conserving bandwidth, Drive API quota, and battery life.
+3. **Room Entity Persistence**:
+   - `BackupFileEntry` records `filePath`, `contentHash`, `lastModified`, `driveFileId`, and `lastBackedUpAt` in Room Database table `backup_file_entries`.
+4. **Force Full Backup Manual Override**:
+   - Users can toggle "Force Full Backup" in Settings (`PREF_FORCE_FULL_BACKUP`). This acts as an emergency escape hatch to re-upload all files if local database state or remote manifests become corrupted.
+
 ## Running a Manual Backup (Implementation)
 
 1. **Triggering the Job**:
@@ -86,7 +99,8 @@ The application uses the **Google Drive REST API v3** combined with **Google Pla
    - Users can configure the historical retention period (e.g., keep records for 30 days). The DAO supports cleaning up old records based on this threshold.
 5. **Account Controls**:
    - The screen shows the currently authenticated Google Account and provides a single-tap sign-out action, which revokes local access and clears the UI state.
-6. **Manual Trigger**:
+6. **Manual Trigger & Escape Hatch**:
+   - A "Force Full Backup" switch overrides delta detection to force full file uploads.
    - For convenience, a "Run Backup Now" shortcut bypasses the schedule and launches the background backup process immediately.
 
 ## Resilience & Edge Case Handling (v1.0.0)
@@ -119,4 +133,4 @@ journey
 ```
 
 ---
-**This marks the complete v1.0.0 architectural walkthrough of WABackupPro! 🚀**
+**This marks the complete architectural walkthrough of WABackupPro (v1.1.0)! 🚀**

@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.1.0] - 2026-07-28 12:50
+
+### Added
+- **Incremental Delta Detection Engine**: Introduced `DetectChangedFilesUseCase` that computes cryptographic SHA-256 hashes of scanned files to skip unchanged payloads.
+- **Delta Database Persistence**: Added `BackupFileEntry` entity and `BackupFileEntryDao` (Room DB schema version 2) to store local file hashes, paths, modification times, and Google Drive file IDs across backup runs.
+- **Manifest Tracking**: Extended `BackupRecord` entity with `uploadedFilesManifest` field.
+- **Optimized Backup Workflow**: Updated `RunBackupUseCase` and `BackupWorker` to only upload `newFiles` and `modifiedFiles`, dramatically conserving Drive API quota, data transfer, and battery power.
+- **Progress Tracking Improvements**: Extended `BackupProgress` model to report skipped file counts (`skippedFiles`) in real-time.
+- **Force Full Backup Toggle**: Added a Material3 switch in `SettingsFragment` (`PREF_FORCE_FULL_BACKUP`) serving as an escape hatch to bypass delta detection if needed.
+- **Documentation Updates**: Added Mermaid delta detection flowchart to `README.md`, updated `WALKTHROUGH.md`, and added "Settings — Force Full Backup" screen to `SCREENTOUR.md`.
+
 ## [0.1.0] - 2026-07-14 15:15
 
 ### Added

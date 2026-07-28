@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
+<ScrollView xmlns:android="http://schemas.microsoft.com/apk/res/android"
+    xmlns:app="http://schemas.google.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fillViewport="true"
@@ -49,6 +49,18 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Backup on Wi-Fi Only"
+            android:focusable="true"
+            android:focusableInTouchMode="true"
+            android:textAppearance="?attr/textAppearanceBodyLarge"
+            android:layout_marginBottom="16dp"/>
+
+        <!-- Force Full Backup Manual Override Switch -->
+        <!-- Escape hatch switch to bypass delta detection and force upload of all files in case of manifest corruption or manual re-syncing requirements -->
+        <com.google.android.material.materialswitch.MaterialSwitch
+            android:id="@+id/switch_force_full_backup"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Force Full Backup (Bypass Delta Detection)"
             android:focusable="true"
             android:focusableInTouchMode="true"
             android:textAppearance="?attr/textAppearanceBodyLarge"
@@ -135,4 +147,3 @@
 
     </LinearLayout>
 </ScrollView>
-

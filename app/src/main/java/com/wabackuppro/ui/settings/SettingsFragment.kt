@@ -40,6 +40,12 @@ class SettingsFragment : Fragment() {
         const val PREF_BACKUP_TIME_MINUTE = "backup_time_minute"
         const val PREF_WIFI_ONLY = "wifi_only"
         const val PREF_HISTORY_DAYS = "history_days"
+
+        // 🔄 Force Full Backup override key constant.
+        // This setting acts as an escape hatch to bypass delta detection algorithms
+        // and force a complete upload of all local files in case of local database corruption,
+        // remote folder deletion, or manual re-synchronization requests.
+        const val PREF_FORCE_FULL_BACKUP = "force_full_backup"
     }
 
     override fun onCreateView(
@@ -50,6 +56,7 @@ class SettingsFragment : Fragment() {
 
         val btnTimePicker: Button = view.findViewById(R.id.btn_time_picker)
         val switchWifiOnly: MaterialSwitch = view.findViewById(R.id.switch_wifi_only)
+        val switchForceFullBackup: MaterialSwitch = view.findViewById(R.id.switch_force_full_backup)
         val etHistoryDays: EditText = view.findViewById(R.id.et_history_days)
         val txtAccountEmail: TextView = view.findViewById(R.id.txt_account_email)
         val btnSignOut: Button = view.findViewById(R.id.btn_sign_out)
@@ -64,6 +71,7 @@ class SettingsFragment : Fragment() {
         btnTimePicker.text = formatTime(savedHour, savedMinute)
         
         switchWifiOnly.isChecked = prefs.getBoolean(PREF_WIFI_ONLY, true)
+        switchForceFullBackup.isChecked = prefs.getBoolean(PREF_FORCE_FULL_BACKUP, false)
         etHistoryDays.setText(prefs.getInt(PREF_HISTORY_DAYS, 30).toString())
 
         // Time Picker Logic
@@ -86,6 +94,13 @@ class SettingsFragment : Fragment() {
         // Wi-Fi Only Logic
         switchWifiOnly.setOnCheckedChangeListener { _, isChecked ->
             prefs.edit().putBoolean(PREF_WIFI_ONLY, isChecked).apply()
+        }
+
+        // Force Full Backup Switch Logic (Escape Hatch override)
+        switchForceFullBackup.setOnCheckedChangeListener { _, isChecked ->
+            prefs.edit().putBoolean(PREF_FORCE_FULL_BACKUP, isChecked).apply()
+            val msg = if (isChecked) "Force full backup enabled (Delta detection bypassed)." else "Incremental backup enabled (Delta detection active)."
+            Toast.makeText(requireContext(), msg, Toast.LENGTH_SHORT).show()
         }
 
         // History Days Logic

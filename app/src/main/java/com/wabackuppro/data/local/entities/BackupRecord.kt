@@ -31,5 +31,12 @@ data class BackupRecord(
     val driveFolderLink: String?,
 
     // The total duration the backup job took to complete, in seconds
-    val durationSeconds: Long
+    val durationSeconds: Long,
+
+    // 📋 Reference to the uploaded files manifest (JSON summary or array of file path + SHA-256 hash + Drive fileId).
+    // Storing content hashes (SHA-256) rather than relying on filename/size alone is necessary because:
+    // 1. Files with identical names and byte sizes can have changed content (e.g., database overwrites or appended media).
+    // 2. WhatsApp media files can be replaced or re-saved without changing file size or display name.
+    // 3. Hashes provide a cryptographic guarantee of exact file matching across incremental backups.
+    val uploadedFilesManifest: String? = null
 )

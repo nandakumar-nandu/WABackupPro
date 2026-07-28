@@ -1,16 +1,19 @@
 package com.wabackuppro.ui.main
 
 import android.app.Application
-import android.content.Intent
+import android.content.Context
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
+import com.wabackuppro.data.local.AppDatabase
 import com.wabackuppro.data.remote.DriveClient
 import com.wabackuppro.domain.models.BackupProgress
+import com.wabackuppro.domain.usecases.DetectChangedFilesUseCase
 import com.wabackuppro.domain.usecases.RunBackupUseCase
+import com.wabackuppro.ui.settings.SettingsFragment
 import com.wabackuppro.utils.FileScanner
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.collect
@@ -24,9 +27,18 @@ import java.time.format.DateTimeFormatter
  */
 class MainViewModel(application: Application) : AndroidViewModel(application) {
 
+    private val db = AppDatabase.getDatabase(application)
+    private val backupFileEntryDao = db.backupFileEntryDao()
     private val fileScanner = FileScanner(application)
     private val driveClient = DriveClient(application)
-    private val runBackupUseCase = RunBackupUseCase(fileScanner, driveClient)
+    private val detectChangedFilesUseCase = DetectChangedFilesUseCase(backupFileEntryDao)
+    
+    private val runBackupUseCase = RunBackupUseCase(
+        fileScanner,
+        driveClient,
+        backupFileEntryDao,
+        detectChangedFilesUseCase
+    )
 
     // 📊 Holds the current status of the backup operation
     private val _backupStatus = MutableLiveData<String>("No backup run yet")
@@ -79,7 +91,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     /**
-     * Triggers the full backup process using the RunBackupUseCase.
+     * Triggers the incremental or full backup process using RunBackupUseCase.
      */
     fun startBackup() {
         val account = _googleAccount.value ?: run {
@@ -87,8 +99,17 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             return
         }
 
+        val prefs = getApplication<Application>().getSharedPreferences(SettingsFragment.PREFS_NAME, Context.MODE_PRIVATE)
+        val forceFullBackup = prefs.getBoolean(SettingsFragment.PREF_FORCE_FULL_BACKUP, false)
+
+        if (forceFullBackup) {
+            addLog("⚠️ Force Full Backup override active: skipping delta detection.")
+        } else {
+            addLog("⚡ Starting Incremental Backup (Delta Detection active)...")
+        }
+
         viewModelScope.launch(Dispatchers.IO) {
-            runBackupUseCase.execute(account).collect { progress ->
+            runBackupUseCase.execute(account, forceFullBackup).collect { progress ->
                 _backupProgress.postValue(progress)
                 _backupStatus.postValue(progress.status)
                 
@@ -96,7 +117,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 if (progress.status.startsWith("Uploaded") || progress.status.startsWith("Failed")) {
                     val icon = if (progress.status.startsWith("Uploaded")) "✅" else "❌"
                     addLog("$icon ${progress.status}")
-                } else if (progress.status.contains("Complete") || progress.status.contains("Scanning")) {
+                } else if (progress.status.contains("Complete") || progress.status.contains("Scanning") || progress.status.contains("up to date")) {
                     addLog("ℹ️ ${progress.status}")
                 }
             }

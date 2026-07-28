@@ -1,6 +1,6 @@
 # Screen Tour: WABackupPro
 
-This document gives an overview of the screens configured in WABackupPro version 1.0.0.
+This document gives an overview of the screens configured in WABackupPro version 1.1.0.
 
 ## Complete Screens
 
@@ -8,16 +8,16 @@ This document gives an overview of the screens configured in WABackupPro version
 - **Purpose**: Displays the status of the automated backup service, shows the date of the last run, and provides a manual trigger button.
 - **Visual Structure**:
   - **Header Toolbar**: App title "WABackupPro".
-  - **Status Card**: Employs a cloud indicator showing states like "No backup run yet", "Backup in progress...", or "Backup complete". Now includes Material3 animations for smooth transitions.
+  - **Status Card**: Employs a cloud indicator showing states like "No backup run yet", "Analyzing changed files...", "Uploading...", or "All files up to date!". Includes Material3 animations for smooth transitions.
   - **Action Button**: Large "Start Backup Now" button.
   - **Retry Button**: Appears in red if the backup halts due to an error (e.g. Quota Exceeded or Auth Expired).
   - **Progress Indicators**: 
     - **Linear Progress Bar**: Animates as files are uploaded.
-    - **Status Labels**: Shows "Uploading X of Y files" and the name of the current file (e.g., `msgstore.db.crypt14`).
+    - **Status Labels**: Shows "Uploading X of Y files", skipped files count ("Skipped Z unchanged files"), and the name of the current file (e.g., `msgstore.db.crypt14`).
   - **Auth & Test Row**: 
     - **Login to Drive**: Triggers the Google Sign-In overlay. Changes to "Sign Out (email)" once authenticated.
     - **Test Upload**: Enabled only after login. Uploads a dummy file to verify end-to-end connectivity.
-  - **Logs Section**: Displays real-time progress, including success (`✅`) or failure (`❌`) badges for every file.
+  - **Logs Section**: Displays real-time progress, including success (`✅`), failure (`❌`), or skipped (`ℹ️`) badges for every file.
 
 ### 2. Google Sign-In & Permissions Flow
 - **Overlay**: The standard system-provided Google Account picker.
@@ -41,11 +41,12 @@ This document gives an overview of the screens configured in WABackupPro version
   - **Status Badge**: Visually indicates outcome with color coding (Green for SUCCESS/PARTIAL, Red for FAILED).
   - **Action Link**: An "Open in Drive" text button that launches a browser or the Drive app to view the backed-up files.
 
-### 5. Settings Screen
-- **Purpose**: The configuration hub for authentication, constraints, and scheduling.
+### 5. Settings Screen & Force Full Backup Escape Hatch
+- **Purpose**: The configuration hub for authentication, constraints, scheduling, and delta detection overrides.
 - **Visual Structure**:
   - **Schedule Controls**: A labeled row with a button triggering an Android `TimePickerDialog` to set the Friday backup time.
   - **Network Constraints**: A modern `MaterialSwitch` to enforce Wi-Fi-only uploads.
+  - **Force Full Backup Switch**: A prominent `MaterialSwitch` control ("Force Full Backup (Bypass Delta Detection)"). When enabled, delta detection hashing is bypassed and all local files are forcibly uploaded. This serves as an escape hatch for manifest recovery or manual re-syncing.
   - **History Management**: An inline `EditText` field allowing the user to specify how many days to retain backup history.
   - **Account Integration**: Displays the currently signed-in Google email address, along with a prominent "Sign Out" button.
   - **Manual Trigger**: A distinct button at the bottom providing a quick shortcut to "Run Backup Now" without leaving the settings screen.
@@ -61,5 +62,6 @@ graph TD
     
     BackupFragment -->|Click Start Backup| LogView[ViewModel Updates Logs List]
     BackupFragment -->|Drive Quota Full / Network Error| RetryButton[Show Retry Button]
+    SettingsFragment -->|Toggle Force Full Backup| DeltaSwitch[Override Delta Detection]
     SettingsFragment -->|Click Login| GoogleConsent[Google OAuth Consent Flow]
 ```
