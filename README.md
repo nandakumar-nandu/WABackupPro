@@ -8,6 +8,16 @@ Automated background backups of WhatsApp Business databases and files to Google 
 
 **WABackupPro** is designed to provide secure, automated backups of WhatsApp Business database files (e.g., `msgstore.db.crypt14`) and media assets directly to a user's Google Drive account. Utilizing WorkManager for reliable background job execution, Room for storing audit history logs and SHA-256 delta manifests, and the Google Drive REST API, the application runs incrementally in the background without affecting daily productivity.
 
+### 📱 Direct Android APK Download
+
+Scan this QR code on your Android device to download and install the APK directly:
+
+<p align="center">
+  <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=https://github.com/nandakumar-nandu/WABackupPro/releases/tag/v1.0.0" alt="APK Download QR Code" />
+  <br/>
+  <a href="https://github.com/nandakumar-nandu/WABackupPro/releases/tag/v1.0.0">Direct Link to Download APK</a>
+</p>
+
 
 
 
