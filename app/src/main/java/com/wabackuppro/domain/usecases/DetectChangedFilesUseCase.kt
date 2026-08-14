@@ -7,44 +7,39 @@ import java.io.FileInputStream
 import java.security.MessageDigest
 
 /**
- * Result data class containing the three buckets produced by delta detection scanning.
+ * Encapsulates the three file lists produced by delta detection analysis.
+ *
+ * @property newFiles Discovered local files that have never been uploaded to Google Drive.
+ * @property modifiedFiles Local files previously backed up whose SHA-256 content hash has changed.
+ * @property unchangedFiles Local files previously backed up whose SHA-256 content hash remains identical.
  */
 data class DeltaScanResult(
-    // 🆕 Files that have never been backed up before
     val newFiles: List<BackupFile>,
-
-    // ✏️ Files previously backed up whose content hash has changed
     val modifiedFiles: List<BackupFile>,
-
-    // ⏭️ Files previously backed up whose content hash remains identical
     val unchangedFiles: List<BackupFile>
 )
 
 /**
- * DetectChangedFilesUseCase compares discovered WhatsApp Business files against Room BackupFileEntry database records.
- * Categorizes files into new, modified, and unchanged buckets.
+ * Evaluates discovered WhatsApp Business files against historical Room database records
+ * to isolate changed content from unchanged files.
+ *
+ * ## Business Rule & Cryptographic Strategy
+ * Filesystem modification timestamps (`lastModified`) and file sizes are intentionally NOT used as primary
+ * indicators of file changes because device clock drift, timezone shifts (e.g. DST), or manual date changes
+ * can alter timestamps without changing content. Calculating a cryptographic SHA-256 hash guarantees
+ * absolute content integrity verification.
+ *
+ * @param backupFileEntryDao Data Access Object for local [com.wabackuppro.data.local.entities.BackupFileEntry] records.
  */
 class DetectChangedFilesUseCase(
     private val backupFileEntryDao: BackupFileEntryDao
 ) {
 
     /**
-     * Executes the delta scan algorithm.
-     * 
-     * Algorithm Details:
-     * 1. Query Room DB for existing [BackupFileEntry] records.
-     * 2. For each scanned file, calculate its SHA-256 cryptographic hash.
-     * 3. Compare with DB record:
-     *    - If no DB record exists -> [newFiles]
-     *    - If DB record exists & contentHash matches -> [unchangedFiles]
-     *    - If DB record exists & contentHash differs -> [modifiedFiles]
-     * 
-     * Rationale for SHA-256 Hash Comparison:
-     * We do NOT rely solely on filesystem modification time (`lastModified`) or file size because:
-     * - System clock skews or manual date changes can alter timestamps without changing content.
-     * - Timezone changes (DST or travelling across time zones) can offset file timestamps by hours.
-     * - File copies or database operations can change modification timestamps while content is identical, or vice versa.
-     * - SHA-256 hashing guarantees cryptographic content integrity verification.
+     * Categorizes a list of scanned WhatsApp Business files into new, modified, and unchanged buckets.
+     *
+     * @param scannedFiles The list of discovered local [BackupFile] items.
+     * @return [DeltaScanResult] containing the three classified file lists.
      */
     suspend fun execute(scannedFiles: List<BackupFile>): DeltaScanResult {
         val newFiles = mutableListOf<BackupFile>()
@@ -60,7 +55,6 @@ class DetectChangedFilesUseCase(
             if (existingEntry == null) {
                 newFiles.add(file)
             } else {
-                // Compute SHA-256 hash of the local file
                 val currentHash = calculateSHA256(localFile)
                 
                 if (currentHash == existingEntry.contentHash) {
@@ -75,7 +69,13 @@ class DetectChangedFilesUseCase(
     }
 
     /**
-     * Calculates the SHA-256 hash of a file payload.
+     * Computes the hex-encoded SHA-256 hash of a file using chunked streaming (8192-byte buffer).
+     *
+     * Reads input streams in fixed 8KB chunks to prevent memory overhead when hashing large files (e.g., videos or database archives).
+     * Returns an empty string if an [Exception] occurs, which safely triggers a hash mismatch and forces a re-upload fallback.
+     *
+     * @param file The physical file payload to hash.
+     * @return The 64-character lowercase hexadecimal SHA-256 string, or empty string on failure.
      */
     fun calculateSHA256(file: File): String {
         return try {

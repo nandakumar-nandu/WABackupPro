@@ -7,8 +7,14 @@ import com.wabackuppro.domain.models.BackupRecord
 import kotlinx.coroutines.flow.Flow
 
 /**
- * BackupRecordDao provides operations on the backup_records database table.
+ * Legacy Data Access Object for [BackupRecord] entities in [BackupDatabase].
+ *
+ * @deprecated Legacy DAO interface from v0.1.0 skeleton. Active production code uses
+ * [com.wabackuppro.data.local.daos.BackupRecordDao] within [AppDatabase]. Retained as a migration reference.
  */
+@Deprecated(
+    message = "Legacy v1 DAO. Active DAO is com.wabackuppro.data.local.daos.BackupRecordDao."
+)
 @Dao
 interface BackupRecordDao {
 
