@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.4.0] - 2026-08-14
+
+### Added
+- **GitHub Actions CI Workflow**: Added `.github/workflows/ci.yml` running JDK 17, JVM unit tests (`./gradlew test`), and Debug APK assembly (`./gradlew assembleDebug`).
+- **Comprehensive Testing Guide**: Added `TESTING.md` documenting automated test suites, physical device matrix (Android 10–14+), permissions flow, Google OAuth sign-in testing, background WorkManager execution, and Demo Mode verification.
+- **Domain & State Testing**: Expanded JVM unit test suite (`BackupProgressTest`) for data class payload verification.
+
+### Changed
+- **Architectural Organization**: Modularized active source into clean package boundaries (`core/`, `data/`, `domain/`, `feature/`, `background/`) while preserving legacy files in place.
+- **Documentation Alignment**: Synchronized `README.md`, `USER_GUIDE.md`, `DEVELOPMENT.md`, `ARCHITECTURE.md`, `SCREENTOUR.md`, and `WALKTHROUGH.md` with source evidence statuses.
+- **Security & Privacy Audit**: Restricted Google Drive OAuth permissions strictly to `DriveScopes.DRIVE_FILE` (least privilege), added `google-services.json` to `.gitignore`, and verified non-exposure of credentials.
+
+---
+
 ## [1.3.0] - 2026-08-14
 
 ### Changed
