@@ -17,13 +17,16 @@ import java.io.IOException
 import java.util.*
 
 /**
- * DriveClient manages Google Drive authentication and file operations.
- * It uses the Google Drive REST API and Play Services Auth.
+ * Manages Google Drive OAuth 2.0 authentication and REST API v3 operations.
+ *
+ * ## Security & Privacy Design
+ * Adheres strictly to the Principle of Least Privilege by requesting only the [DriveScopes.DRIVE_FILE] scope.
+ * This restricts application permissions to files and folders created directly by WABackupPro, preventing
+ * access to user documents, photos, or other personal Drive data.
  */
 class DriveClient(private val context: Context) {
 
-    // 🛡️ Principle of Least Privilege: Using DRIVE_FILE scope.
-    // This allows the app to only access files/folders it creates.
+    // Principle of Least Privilege: Restricted to DRIVE_FILE scope.
     private val scopes = Collections.singletonList(DriveScopes.DRIVE_FILE)
     
     private val googleSignInClient: GoogleSignInClient by lazy {
