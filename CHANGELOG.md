@@ -7,7 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [1.3.0] - 2026-07-28
+## [1.3.0] - 2026-08-14
+
+### Changed
+- **Documentation Architecture Overhaul**: Consolidated project overview into `README.md`, developer setup in `DEVELOPMENT.md`, novice instructions in `USER_GUIDE.md`, and technical specifications in `ARCHITECTURE.md`.
+- **Legacy Markdown Retention**: Added consolidation header notices to `SCREENTOUR.md` and `WALKTHROUGH.md` while preserving complete original content for link stability.
 
 ### Added
 - **Per-File Result Tracking**: Added `BackupFileResult` Room entity and `BackupFileResultDao` (Database v3) to persist individual file status (`SUCCESS`, `SKIPPED`, `FAILED`).
