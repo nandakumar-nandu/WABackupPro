@@ -89,6 +89,13 @@ app/src/main/java/com/wabackuppro/
 │   └── NetworkUtils.kt             # Connectivity check helper
 └── workers/
     └── BackupWorker.kt             # CoroutineWorker promoted to Foreground Service
+
+app/src/test/java/com/wabackuppro/
+├── domain/
+│   ├── models/
+│   │   └── BackupCategoryTest.kt             # Unit tests for category enum & display names
+│   └── usecases/
+│       └── DetectChangedFilesUseCaseTest.kt  # Unit tests for SHA-256 calculation & delta sorting
 ```
 
 ---
@@ -138,10 +145,10 @@ Use the system-appropriate Gradle wrapper command:
 ## 🔄 Documentation Synchronization Checklist
 
 When adding or modifying a feature:
-- [ ] Update [ARCHITECTURE.md](ARCHITECTURE.md) if structural boundaries change.
-- [ ] Update [USER_GUIDE.md](USER_GUIDE.md) if user flows or settings change.
-- [ ] Update [CHANGELOG.md](CHANGELOG.md) with a clean release entry.
-- [ ] Run `.\gradlew.bat test` to confirm all unit tests pass before committing.
+- [x] Update [ARCHITECTURE.md](ARCHITECTURE.md) if structural boundaries change.
+- [x] Update [USER_GUIDE.md](USER_GUIDE.md) if user flows or settings change.
+- [x] Update [CHANGELOG.md](CHANGELOG.md) with a clean release entry.
+- [x] Run `.\gradlew.bat test` to confirm all unit tests pass before committing.
 
 ---
 *WABackupPro Developer Documentation · Version 1.3.0*
