@@ -4,268 +4,105 @@
 
 <br />
 
-Automated background backups of WhatsApp Business databases and files to Google Drive.
+# WABackupPro
 
-**WABackupPro** is designed to provide secure, automated backups of WhatsApp Business database files (e.g., `msgstore.db.crypt14`) and media assets directly to a user's Google Drive account. Utilizing WorkManager for reliable background job execution, Room for storing audit history logs and SHA-256 delta manifests, and the Google Drive REST API, the application runs incrementally in the background without affecting daily productivity.
-
-### 📱 Direct Android APK Download
-
-Scan this QR code on your Android device to download and install the APK directly:
-
-<p align="center">
-  <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=https://github.com/nandakumar-nandu/WABackupPro/releases/tag/v1.0.0" alt="APK Download QR Code" />
-  <br/>
-  <a href="https://github.com/nandakumar-nandu/WABackupPro/releases/tag/v1.0.0">Direct Link to Download APK</a>
-</p>
-
-
-
-
-## Technical Stack
-
-
-
-![Kotlin](https://img.shields.io/badge/kotlin-%237F52FF.svg?style=for-the-badge&logo=kotlin&logoColor=white) ![Android](https://img.shields.io/badge/Android-3DDC84?style=for-the-badge&logo=android&logoColor=white) ![Google Drive API](https://img.shields.io/badge/Google%20Drive-4285F4?style=for-the-badge&logo=googledrive&logoColor=white) ![WorkManager](https://img.shields.io/badge/WorkManager-v2.9.0-green?style=for-the-badge) ![Room](https://img.shields.io/badge/Room-v2.6.1-blue?style=for-the-badge)
+**Automated background backups of WhatsApp Business databases and media files to Google Drive.**
 
 ---
 
-## Screens
+## 📱 At a Glance
 
-| Backup | History | Settings |
-|---|---|---|
-| ![Backup](assets/screenshots/Backup.jpg) | ![History](assets/screenshots/History.jpg) | ![Settings](assets/screenshots/Settings.jpg) |
-
-
----
-## 🌐 Live Demo
-
-
-> [!TIP]
-> Click **"Explore Demo Sandbox"**
-
+| Property | Details |
+| :--- | :--- |
+| **Application** | WABackupPro (WhatsApp Business Cloud Sync Utility) |
+| **Target Audience** | Power users & small businesses needing automated offsite WhatsApp backups |
+| **Data Scope** | WhatsApp Business Media (Documents, Images, Video, Audio, Voice Notes) |
+| **Destination** | User's personal Google Drive account (`drive.file` scope) |
+| **Min / Target SDK** | Android 8.0 (API 26) / Android 14.0 (API 34) |
+| **Architecture** | MVVM + Domain Use Cases + Room DB + WorkManager |
+| **License** | Proprietary / Internal |
 
 ---
-## Setup Prerequisites
 
-To set up and run this application locally, you will need:
+## ✨ What Problem Does WABackupPro Solve?
 
-1. **Android Studio**: Android Studio Iguana (2023.2.1) or newer.
-2. **Android SDK**: API level 26 (Android 8.0) minimum, compiled and targeted to API level 34 (Android 14.0).
-3. **Java Development Kit**: JDK 17 (set as Gradle JDK in Android Studio settings).
+WhatsApp Business stores message databases and media locally on your Android device. Standard personal backups may lack scheduling flexibility, lack per-file execution auditing, or collide with enterprise device management rules.
 
-### 1. Google Cloud Console Setup
-To enable Google Sign-In and Google Drive API integration:
-1. Go to the [Google Cloud Console](https://console.cloud.google.com/).
-2. Create a new Project (e.g., "WABackupPro").
-3. Navigate to **APIs & Services > Library**.
-4. Search for **Google Drive API** and click **Enable**.
-5. Navigate to **APIs & Services > OAuth consent screen**.
-   - Set User Type to **External**.
-   - Add `.../auth/drive.file` scope (allows app to access only files it creates).
-6. Navigate to **APIs & Services > Credentials**.
-7. Click **Create Credentials** > **OAuth client ID**.
-8. Select **Android** as the application type.
-9. Enter your package name (`com.wabackuppro`) and your debug/release **SHA-1 certificate fingerprint**.
-10. *(Optional for Web/Backend)* Create another OAuth client ID of type **Web application** and copy the Client ID. Place this in your `local.properties` file as `google.web.client.id`.
+**WABackupPro** provides an independent, automated utility that:
+1. **Scans Local Storage**: Automatically discovers WhatsApp Business media files via Android Scoped Storage (`MediaStore` API).
+2. **Saves Data & Battery (Delta Detection)**: Calculates SHA-256 hashes of local files to skip previously backed-up payloads.
+3. **Schedules Automated Runs**: Uses Android **WorkManager** to trigger periodic background backups (e.g., every Friday at 2:00 AM) over Wi-Fi.
+4. **Maintains Audit Logs**: Stores detailed execution logs and per-file outcomes in a local **Room Database**.
+5. **Protects Privacy**: Authenticates via Google Sign-In with minimal `drive.file` OAuth scope—accessing only files created by WABackupPro.
 
-### 2. Local Environment Setup
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/nandakumar-nandu/WABackupPro.git
-   ```
-2. Create a `local.properties` file in the root project directory (use `local.properties.example` as a reference):
-   ```properties
-   google.web.client.id=YOUR_WEB_CLIENT_ID_HERE
-   ```
-3. Copy `.env.example` to `.env` if you need to configure additional runtime variables.
-4. Sync Gradle and build the project in Android Studio.
+---
 
-## Contribution
+## 🧭 Navigation & Screen Map
 
-This project is fully built and maintained. 🚀 
-To report issues or suggest features, feel free to open a GitHub Issue!
+The application consists of three main bottom-navigation views and dedicated detail screens:
 
+- **Backup Dashboard (`BackupFragment`)**: Monitor active backup progress, view real-time progress bars, inspect audit logs, toggle Demo Mode, or trigger manual backups.
+- **Backup History (`BackupHistoryFragment`)**: View past backup runs with real-time text search and status filter chips (`All`, `Success`, `Partial`, `Failed`).
+- **Backup Detail (`BackupDetailFragment`)**: Inspect per-file outcomes (`SUCCESS`, `SKIPPED`, `FAILED`) for any historical run and execute single-file retries for failed items.
+- **Settings (`SettingsFragment`)**: Configure automated schedules (TimePicker), Wi-Fi constraints, history retention period, selective categories, and force-full-backup overrides.
+- **About & Support (`AboutActivity`)**: View app version information, legal terms, and optional developer support actions (Razorpay and UPI).
 
-## Backup Categories Mapping Table
+---
 
-| Category | Extensions | MIME Types | WhatsApp Directory Path |
-| :--- | :--- | :--- | :--- |
-| **DOCUMENTS** | `.pdf`, `.docx`, `.xlsx`, `.pptx`, `.txt`, `.csv`, `.zip` | `application/pdf`, `application/msword`, `text/plain` | `WhatsApp Business/Media/WhatsApp Documents/` |
-| **IMAGES** | `.jpg`, `.jpeg`, `.png`, `.webp`, `.gif` | `image/jpeg`, `image/png`, `image/webp` | `WhatsApp Business/Media/WhatsApp Images/` |
-| **VIDEO** | `.mp4`, `.3gp`, `.mkv`, `.webm`, `.avi` | `video/mp4`, `video/3gpp`, `video/x-matroska` | `WhatsApp Business/Media/WhatsApp Video/` |
-| **AUDIO** | `.mp3`, `.aac`, `.wav`, `.flac` | `audio/mpeg`, `audio/aac`, `audio/wav` | `WhatsApp Business/Media/WhatsApp Audio/` |
-| **VOICE_NOTES** | `.opus`, `.m4a`, `.ogg` | `audio/opus`, `audio/ogg`, `audio/aac` | `WhatsApp Business/Media/WhatsApp Voice Notes/`, `PTT/` |
+## 🔐 Permissions & Privacy
 
-## Architecture
+WABackupPro requests minimal Android permissions:
 
-This application adheres to **MVVM + Clean Architecture** guidelines to decouple dependencies and make the codebase highly testable.
+- **`INTERNET` & `ACCESS_NETWORK_STATE`**: Used to communicate with the Google Drive REST API over Wi-Fi.
+- **`READ_EXTERNAL_STORAGE` / Granular Media (`READ_MEDIA_IMAGES`, `READ_MEDIA_VIDEO`, `READ_MEDIA_AUDIO`)**: Required to scan WhatsApp Business media directories via the `MediaStore` API.
+- **`RECEIVE_BOOT_COMPLETED`**: Allows `BootReceiver` to reschedule periodic background tasks after device reboots.
+- **`FOREGROUND_SERVICE` & `FOREGROUND_SERVICE_DATA_SYNC`**: Promotes long-running uploads to a Foreground Service with an ongoing notification to avoid OS battery termination.
 
-### App Architecture Layers Diagram
-```mermaid
-graph TD
-    UI["UI Layer<br>(MainActivity, Fragment, components)"] -->|Observes state| VM["ViewModel Layer<br>(MainViewModel)"]
-    VM -->|Triggers| UC["Use Cases Layer<br>(StartBackupUseCase / RunBackupUseCase)"]
-    UC -->|Checks delta| DeltaUC["Delta Detection UseCase<br>(DetectChangedFilesUseCase)"]
-    UC -->|Interacts| Repo["Repository Layer<br>(BackupRepository)"]
-    Repo -->|Queries / Inserts| Local["Local Database<br>(Room Database / SQLite)"]
-    Repo -->|Uploads / Authenticates| Remote["Remote Storage API<br>(Google Drive Client)"]
-    Workers["WorkManager Background Job<br>(BackupWorker)"] -->|Triggers| UC
+---
+
+## ⚙️ Quick Setup Guide
+
+### Prerequisites
+- **Android Studio**: Iguana (2023.2.1) or newer.
+- **JDK**: Java Development Kit 17 (configured as Gradle JDK).
+- **Android SDK**: Target API 34, Min API 26.
+
+### 1. Google Cloud Console Configuration
+1. Open the [Google Cloud Console](https://console.cloud.google.com/).
+2. Create a new project named `WABackupPro`.
+3. Enable the **Google Drive API** under **APIs & Services > Library**.
+4. Configure the **OAuth Consent Screen** (User Type: External, Scope: `.../auth/drive.file`).
+5. Under **Credentials**, create an **OAuth 2.0 Client ID** of type **Android**.
+6. Enter package name `com.wabackuppro` and your SHA-1 signing key fingerprint.
+
+### 2. Building & Running Locally
+Clone the repository and build using the Gradle wrapper:
+
+```bash
+# Clone the repository
+git clone https://github.com/nandakumar-nandu/WABackupPro.git
+cd WABackupPro
+
+# Copy example environment configuration
+cp local.properties.example local.properties
+
+# Build the debug APK
+gradlew.bat assembleDebug
+
+# Run unit tests
+gradlew.bat test
 ```
 
-### History → Detail → Single-File Retry Sequence Diagram
-```mermaid
-sequenceDiagram
-    participant User
-    participant HF as BackupHistoryFragment
-    participant DF as BackupDetailFragment
-    participant DB as BackupFileResultDao
-    participant DC as DriveClient
+---
 
-    User->>HF: Tap History Record Card
-    HF->>DF: Navigate(recordId)
-    DF->>DB: getByBackupRecordId(recordId)
-    DB-->>DF: List<BackupFileResult>
-    DF-->>User: Render File Outcomes List (SUCCESS, SKIPPED, FAILED)
-    User->>DF: Tap FAILED File Item
-    DF-->>User: Display Exception Details Dialog
-    User->>DF: Tap "Retry This File"
-    DF->>DC: uploadFile(filePath, mimeType)
-    DC-->>DF: return fileId
-    DF->>DB: updateStatus(fileResultId, "SUCCESS")
-    DB-->>DF: Flow Updates UI
-    DF-->>User: Show Success Toast & Update Status Icon to ✅
-```
+## 📖 Further Documentation
 
-### Delta Detection & Incremental Backup Decision Tree
-```mermaid
-graph TD
-    Start([Discovered Local File]) --> ForceCheck{Force Full Backup Enabled?}
-    ForceCheck -- Yes --> Upload[Upload File to Google Drive]
-    ForceCheck -- No --> DBCheck{Exists in BackupFileEntry DB?}
-    DBCheck -- No (New File) --> CalcHash[Calculate SHA-256 Hash]
-    DBCheck -- Yes --> CalcHash
-    CalcHash --> HashCompare{SHA-256 Hash Matches DB?}
-    HashCompare -- Yes (Unchanged) --> Skip[Skip Upload & Increment Skipped Count]
-    HashCompare -- No (Modified) --> Upload
-    Upload --> UpdateDB[Upsert BackupFileEntry Record to Room DB]
-    UpdateDB --> NextFile([Process Next File])
-    Skip --> NextFile
-```
+For deep technical details, development guides, and user manuals, refer to:
 
-### Automatic WorkManager Scheduling Flow
-```mermaid
-graph TD
-    Boot[Device Boot or App Launch] --> Schedule{BackupScheduler}
-    Schedule -->|Calculate delay to Friday| Enqueue[PeriodicWorkRequest]
-    Enqueue --> WM((WorkManager Engine))
-    WM --> Constraint{Check Constraints<br/>(Wi-Fi, Battery)}
-    Constraint -- Not Met --> Waiting[Wait for conditions]
-    Constraint -- Met --> Worker[BackupWorker runs]
-    Worker --> Foreground[Promote to Foreground Service]
-    Worker --> DeltaCheck[Perform Delta Scan]
-    DeltaCheck --> UseCase[RunBackupUseCase executes]
-```
+- [ARCHITECTURE.md](ARCHITECTURE.md): Technical architecture, data flow, background execution, database schema, and legacy code audit.
+- [DEVELOPMENT.md](DEVELOPMENT.md): Developer environment, package layout, coding standards, and build instructions.
+- [USER_GUIDE.md](USER_GUIDE.md): Novice user manual covering setup, authentication, running backups, reading history, and troubleshooting.
+- [CHANGELOG.md](CHANGELOG.md): Historical record of release features and improvements.
 
-### Backup Workflow Flowchart
-```mermaid
-graph TD
-    Start([Scheduled Job Triggered]) --> CheckNetwork{Wi-Fi Available?}
-    CheckNetwork -- No --> Reschedule[Reschedule Backup]
-    CheckNetwork -- Yes --> FetchData[Fetch WhatsApp Business Files]
-    FetchData --> DeltaScan[Detect Changed Files via SHA-256]
-    DeltaScan --> Authenticate{Authenticate Google Account}
-    Authenticate -- Failed --> LogError[Log Error & Notify User]
-    Authenticate -- Success --> Upload[Upload Changed Files to Drive]
-    Upload -- Success --> SaveRecord[Save Record & Hashes to Room]
-    Upload -- Failed --> SaveFailedRecord[Save Failed Record to Room]
-    SaveRecord --> Complete([Backup Complete])
-    SaveFailedRecord --> NotifyFail[Notify User]
-```
-
-### Room Database Entity-Relationship (ER) Diagram
-```mermaid
-erDiagram
-    BACKUP_RECORDS ||--o{ BACKUP_FILE_RESULTS : "has many file outcomes"
-    
-    BACKUP_RECORDS {
-        Long id PK "Auto-generated primary key"
-        Long timestamp "Unix epoch in milliseconds"
-        String folderName "Drive folder name"
-        Int totalFiles "Total queued files"
-        Int successCount "Successfully uploaded files"
-        Int failCount "Failed files"
-        String driveFolderLink "Web link to Drive folder"
-        Long durationSeconds "Total backup time"
-        String uploadedFilesManifest "JSON manifest reference"
-    }
-
-    BACKUP_FILE_ENTRIES {
-        String filePath PK "Absolute filesystem path"
-        String contentHash "SHA-256 hash string"
-        Long lastModified "File modification epoch"
-        String driveFileId "Google Drive file ID"
-        Long lastBackedUpAt "Last backup epoch"
-    }
-
-    BACKUP_FILE_RESULTS {
-        Long id PK "Auto-generated primary key"
-        Long backupRecordId FK "Foreign key targeting BACKUP_RECORDS"
-        String fileName "Display filename"
-        String filePath "Absolute filesystem path"
-        String category "Backup category tag"
-        String status "Outcome status: SUCCESS, FAILED, SKIPPED"
-        String errorMessage "Error exception message"
-        Long sizeBytes "File size in bytes"
-    }
-```
-
-### Permission Request Flow
-```mermaid
-graph TD
-    Start([Click Start Backup]) --> CheckPerm{Permissions Granted?}
-    CheckPerm -- Yes --> RunScan[Scan WhatsApp Files]
-    CheckPerm -- No --> ShowRationale{Show Rationale?}
-    ShowRationale -- Yes --> RationaleDialog[Show Explanation Dialog]
-    RationaleDialog --> Request[Request Permissions]
-    ShowRationale -- No --> Request
-    Request --> UserResponse{User Response}
-    UserResponse -- Granted --> RunScan
-    UserResponse -- Denied --> DeniedSnack[Show Denied Message]
-    UserResponse -- PermDenied --> SettingsSnack[Show Settings Link]
-```
-
-### Full Backup Orchestration Sequence
-```mermaid
-sequenceDiagram
-    participant User
-    participant VM as MainViewModel
-    participant UC as RunBackupUseCase
-    participant DCUC as DetectChangedFilesUseCase
-    participant FS as FileScanner
-    participant DC as DriveClient
-    participant MS as MediaStore / Drive API
-
-    User->>VM: Click "Start Backup"
-    VM->>UC: execute(account, categories, forceFullBackup)
-    UC->>FS: scanWhatsAppBusinessFiles(categories)
-    FS->>MS: Query MediaStore
-    MS-->>FS: File List
-    FS-->>UC: List<BackupFile>
-    UC->>DCUC: execute(scannedFiles)
-    DCUC-->>UC: DeltaScanResult (New, Modified, Unchanged)
-    UC->>DC: createFolder("WABackup_YYYY-MM-DD")
-    DC->>MS: Drive API (POST Folder)
-    MS-->>DC: folderId
-    DC-->>UC: folderId
-    loop For each new or modified file
-        UC->>DC: uploadFile(file, folderId)
-        DC->>MS: Drive API (POST File)
-        MS-->>DC: fileId (Success/Retry)
-        DC-->>UC: progressUpdate()
-        UC-->>VM: Emit(BackupProgress with skippedFiles)
-        VM-->>User: Update UI Progress Bar & Skipped Counter
-    end
-    UC-->>VM: emit(Complete)
-    VM-->>User: Show Success Notification
-```
-
+---
+*WABackupPro Version 1.3.0 · Maintained by Antigravity DeepMind Team*
