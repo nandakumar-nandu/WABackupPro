@@ -127,6 +127,7 @@ Use the system-appropriate Gradle wrapper command:
 When adding or modifying a feature:
 - [x] Update [ARCHITECTURE.md](ARCHITECTURE.md) if structural boundaries change.
 - [x] Update [USER_GUIDE.md](USER_GUIDE.md) if user flows or settings change.
+- [x] Update [TESTING.md](TESTING.md) if test procedures or hardware requirements change.
 - [x] Update [CHANGELOG.md](CHANGELOG.md) with a clean release entry.
 - [x] Run `.\gradlew.bat test` to confirm all unit tests pass before committing.
 
