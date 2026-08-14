@@ -105,8 +105,23 @@ If you want to test the app without logging into Google Drive:
 | :--- | :--- | :--- |
 | **"Authentication Expired"** | Google OAuth token refreshed or revoked | Tap **Login to Drive** in Settings to re-authenticate. |
 | **"Drive Storage Full"** | Your Google Drive account is out of space | Clear space on Google Drive or upgrade your storage plan. |
-| **"No files found"** | WhatsApp Business is not installed or categories are turned off | Verify WhatsApp Business is installed and check category switches in Settings. |
-| **Backup paused on mobile data** | Wi-Fi Only constraint is active | Connect to a Wi-Fi network or turn off "Backup on Wi-Fi Only" in Settings. |
+
+## ❓ Troubleshooting & Frequently Asked Questions
+
+### 1. What happens when files are unchanged?
+- WABackupPro computes a streaming SHA-256 hash for each local file. If the hash matches the stored Room entry from a prior backup, the file status is recorded as `SKIPPED`, saving upload bandwidth and Google Drive API quota.
+
+### 2. What happens if an upload fails midway?
+- If network connection is lost or a single file fails, WABackupPro logs the failure as `FAILED` for that specific item in the Room database while completing the remaining uploads.
+- You can navigate to **History > Detail View**, tap the failed item, and trigger a single-file retry attempt directly.
+
+### 3. Google Drive Login Fails
+- Ensure your device has an active internet connection.
+- Verify that your OAuth Client ID and SHA-1 fingerprint are correctly registered in the Google Cloud Console.
+
+### 4. Background Backup Did Not Trigger
+- Ensure battery optimization is disabled for WABackupPro in Android **Settings > Apps > Special App Access > Battery Optimization**.
+- Verify that `RECEIVE_BOOT_COMPLETED` permission was granted to allow automatic schedule restoration on reboot.
 
 ---
-*WABackupPro User Manual · Version 1.3.0*
+*WABackupPro User Guide · Version 1.3.0*
