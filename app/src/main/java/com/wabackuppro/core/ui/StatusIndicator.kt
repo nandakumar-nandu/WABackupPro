@@ -1,4 +1,4 @@
-package com.wabackuppro.ui.components
+package com.wabackuppro.core.ui
 
 import android.content.Context
 import android.util.AttributeSet
@@ -12,5 +12,5 @@ class StatusIndicator @JvmOverloads constructor(
     attrs: AttributeSet? = null,
     defStyleAttr: Int = 0
 ) : View(context, attrs, defStyleAttr) {
-    // 🎨 Custom UI component logic placeholder
+    // Custom View Implementation
 }
