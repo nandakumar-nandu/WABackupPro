@@ -28,14 +28,32 @@ The application follows an **MVVM + Clean Architecture Use Case** model:
   - Local Database: Room DB (`AppDatabase`, Version 3, database name `"wabackuppro_database"`).
   - DAOs: `BackupRecordDao`, `BackupFileResultDao`, `BackupFileEntryDao`.
   - Remote API: `DriveClient` (Google Drive REST API v3 via Play Services OAuth with `drive.file` scope).
-- **Background Engine (`com.wabackuppro.workers.*` & `receivers.*`)**:
+- **Background Engine (`com.wabackuppro.workers.*` & `receivers.*` & `utils.*`)**:
   - `BackupWorker`: `CoroutineWorker` promoted to a Foreground Service (`ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC`) during execution.
   - `BackupScheduler`: Utility configuring WorkManager periodic jobs (`weekly_friday_backup`) with hardware constraints.
   - `BootReceiver`: `BroadcastReceiver` listening for `ACTION_BOOT_COMPLETED` to reschedule WorkManager jobs after device reboots.
+  - `FileScanner`: Utility querying MediaStore for WhatsApp Business media files.
+  - `NetworkUtils`: Utility checking network availability before network operations.
 
 ---
 
-## 2. Component Call Graph & Data Flow
+## 2. Current Architecture vs Target Modular Monolith Architecture
+
+### Current Package Structure
+Currently, source files reside across flatter packages (`ui/main`, `ui/history`, `ui/settings`, `ui/about`, `ui/components`, `data/local`, `data/remote`, `data/repository`, `domain/models`, `domain/usecases`, `utils`, `workers`, `receivers`).
+
+### Target Modular Monolith Package Structure (Option A)
+To achieve high cohesion, low coupling, and clear layer boundaries without introducing multi-module Gradle build overhead, the active codebase will be organized into 5 primary package groups:
+
+- **`com.wabackuppro.core`**: Cross-feature utilities (`NetworkUtils`), constants, and shared custom views (`StatusIndicator`).
+- **`com.wabackuppro.data`**: Local persistence (`AppDatabase`, entities, DAOs), remote services (`DriveClient`), and legacy repositories.
+- **`com.wabackuppro.domain`**: Pure business models (`BackupFile`, `BackupProgress`, `BackupRecord`, `BackupCategory`) and use cases (`DetectChangedFilesUseCase`, `RunBackupUseCase`).
+- **`com.wabackuppro.feature`**: Feature-specific UI screens, ViewModels, and adapters (`main`, `history`, `settings`, `about`).
+- **`com.wabackuppro.background`**: System-triggered background execution, WorkManager workers (`BackupWorker`), receivers (`BootReceiver`), schedulers (`BackupScheduler`), and media scanners (`FileScanner`).
+
+---
+
+## 3. Component Call Graph & Data Flow
 
 ```
 [ UI Layer ]
