@@ -113,15 +113,17 @@ To conserve network bandwidth and Drive quota, `DetectChangedFilesUseCase` calcu
 
 ---
 
-## 6. Legacy & Transitional Code Analysis
+## 7. Legacy Component Audit & Transitional Strategy
 
-- **`AppDatabase.kt` (Active)**: Database name `"wabackuppro_database"`, Version 3. Manages `BackupRecord`, `BackupFileEntry`, and `BackupFileResult`.
-- **`BackupDatabase.kt` (Inactive/Legacy)**: Database name `"wa_backup_database"`, Version 1. Retained as an inactive migration artifact. Current source and inspected history indicate `AppDatabase` is the active database; it has not been conclusively proven that `BackupDatabase` was never included in an early distributed build.
-- **`BackupRepository.kt` (Inactive/Legacy)**: Wraps legacy `data.local.BackupRecordDao`. Active production flows (`RunBackupUseCase` and `MainViewModel`) interact directly with `AppDatabase` DAOs. Retained as an inactive migration reference.
+| Class Name | Original Location | Status | Active Replacement | Retained Reason |
+| :--- | :--- | :--- | :--- | :--- |
+| `BackupDatabase.kt` | `com.wabackuppro.data.local` | Deprecated | `AppDatabase` (Version 3) | Retained for database migration safety; not conclusively proven that v1 DB was never distributed. |
+| `BackupRecordDao.kt` (Legacy) | `com.wabackuppro.data.local` | Deprecated | `com.wabackuppro.data.local.daos.BackupRecordDao` | Retained to maintain schema upgrade compatibility and prevent broken references. |
+| `BackupRepository.kt` | `com.wabackuppro.data.repository` | Deprecated | Direct DAOs (`RunBackupUseCase`, `MainViewModel`) | Retained as an inactive architectural abstraction; zero active call sites in production flows. |
 
 ---
 
-## 7. Known Architectural Limitations
+## 8. Known Architectural Limitations
 
 1. **Direct DAO Access**: UI Fragments (`BackupHistoryFragment`, `BackupDetailFragment`) currently instantiate `AppDatabase` directly to observe room flows, bypassing the ViewModel layer.
 2. **ViewModel Manual Construction**: `MainViewModel` manually instantiates `AppDatabase`, `FileScanner`, `DriveClient`, and `RunBackupUseCase` without a dependency injection framework (e.g., Hilt/Dagger).
