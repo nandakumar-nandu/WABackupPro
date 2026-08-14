@@ -15,6 +15,10 @@ import com.wabackuppro.data.local.entities.BackupRecord
  * AppDatabase provides the main entry point to the Room database.
  * Updated to version 3 to support drill-down per-file execution results.
  */
+/**
+ * [AppDatabase] is the active Room database for WABackupPro (Version 3, database name "wabackuppro_database").
+ * Manages active entities: [BackupRecord], [BackupFileEntry], and [BackupFileResult].
+ */
 @Database(
     entities = [BackupRecord::class, BackupFileEntry::class, BackupFileResult::class],
     version = 3,
