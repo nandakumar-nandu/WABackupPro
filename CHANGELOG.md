@@ -1,105 +1,89 @@
 # Changelog
 
-All notable changes to this project will be documented in this file.
+All notable changes to **WABackupPro** are documented in this file.
 
-## [1.3.0] - 2026-07-28 13:00
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-### Added
-- **Per-File Result Tracking Persistence**: Created `BackupFileResult` entity and `BackupFileResultDao` (Room DB schema version 3) to record individual file outcomes (`SUCCESS`, `FAILED`, `SKIPPED`), error messages, and file sizes for every backup run.
-- **Backup Detail Screen**: Built `BackupDetailFragment` and `FileResultAdapter` allowing users to tap any history entry for drill-down visibility into individual file outcomes with status icons (`✅`, `❌`, `⏭️`).
-- **Single-File Retry Engine**: Added interactive single-file retry flow in `BackupDetailFragment` enabling users to re-upload individual failed items with automatic Room DB status updates.
-- **History Search & Filter Controls**: Enhanced `BackupHistoryFragment` with a search bar (`et_search_history`) and Material3 filter chips (`All`, `Success`, `Partial Failures`, `Failed`), evaluating queries reactively via Kotlin Flows.
-- **Documentation Updates**: Added Mermaid sequence diagram for History -> Detail -> Retry flow to `README.md`, updated `WALKTHROUGH.md`, and updated `SCREENTOUR.md`.
+---
 
-## [1.2.0] - 2026-07-28 12:55
+## [1.3.0] - 2026-07-28
 
 ### Added
-- **Selective Backup Categories**: Introduced `BackupCategory` enum (`DOCUMENTS`, `IMAGES`, `VIDEO`, `AUDIO`, `VOICE_NOTES`) allowing users to customize media types backed up to Google Drive.
-- **Voice Notes Separation Engine**: Enhanced `FileScanner` to inspect directory paths (`WhatsApp Voice Notes` / `PTT`) to differentiate voice notes from general audio tracks.
-- **Category Settings UI**: Built a Material3 category selection panel in `SettingsFragment` complete with per-category toggle switches, SharedPreferences persistence (`PREF_CAT_*`), and "Select All" / "Select None" quick shortcut buttons.
-- **Empty Selection Short-Circuiting**: Updated `RunBackupUseCase` to short-circuit immediately with a clear user notice when no categories are selected, avoiding zero-item folder creations and API quota consumption.
-- **History Per-Category Breakdown**: Updated `HistoryAdapter` and `item_backup_record.xml` to display formatted per-category file breakdown summaries on each history card.
-- **Documentation**: Added category-to-file-extension mapping table to `README.md`, updated `WALKTHROUGH.md`, and added "Settings — Category Selection" screen to `SCREENTOUR.md`.
+- **Per-File Result Tracking**: Added `BackupFileResult` Room entity and `BackupFileResultDao` (Database v3) to persist individual file status (`SUCCESS`, `SKIPPED`, `FAILED`).
+- **Backup Detail Screen**: Added `BackupDetailFragment` and `FileResultAdapter` for per-file outcome inspection.
+- **Single-File Retry Engine**: Added interactive single-file retry flow in `BackupDetailFragment` for failed uploads.
+- **History Search & Filtering**: Added live search bar (`et_search_history`) and Material3 status filter chips (`All`, `Success`, `Partial`, `Failed`) to `BackupHistoryFragment`.
 
-## [1.1.0] - 2026-07-28 12:50
+---
 
-### Added
-- **Incremental Delta Detection Engine**: Introduced `DetectChangedFilesUseCase` that computes cryptographic SHA-256 hashes of scanned files to skip unchanged payloads.
-- **Delta Database Persistence**: Added `BackupFileEntry` entity and `BackupFileEntryDao` (Room DB schema version 2) to store local file hashes, paths, modification times, and Google Drive file IDs across backup runs.
-- **Manifest Tracking**: Extended `BackupRecord` entity with `uploadedFilesManifest` field.
-- **Optimized Backup Workflow**: Updated `RunBackupUseCase` and `BackupWorker` to only upload `newFiles` and `modifiedFiles`, dramatically conserving Drive API quota, data transfer, and battery power.
-- **Progress Tracking Improvements**: Extended `BackupProgress` model to report skipped file counts (`skippedFiles`) in real-time.
-- **Force Full Backup Toggle**: Added a Material3 switch in `SettingsFragment` (`PREF_FORCE_FULL_BACKUP`) serving as an escape hatch to bypass delta detection if needed.
-- **Documentation Updates**: Added Mermaid delta detection flowchart to `README.md`, updated `WALKTHROUGH.md`, and added "Settings — Force Full Backup" screen to `SCREENTOUR.md`.
-
-## [0.1.0] - 2026-07-14 15:15
+## [1.2.0] - 2026-07-28
 
 ### Added
-- **Android Project Scaffold**: Standard Android project setup using Kotlin, min SDK 26, target SDK 34, and Java 17.
-- **Gradle Version Catalog**: Integrated `libs.versions.toml` to manage Room, WorkManager, Google Drive API, and Navigation dependencies centrally.
-- **MVVM Architecture Layout**: Configured packages for `ui`, `data`, `domain`, `workers`, and `utils`.
-- **Navigation Flow UI**: Built `MainActivity` with bottom navigation targeting `BackupFragment`, `BackupHistoryFragment`, and `SettingsFragment`.
-- **Material 3 Custom Styling**: Defined responsive layouts (`activity_main.xml`, `fragment_backup.xml`) with a dark-theme/light-theme compatible palette.
-- **Data & Work Placeholders**: Created skeleton implementations for Room (`BackupDatabase`, `BackupRecordDao`), Use Cases, and WorkManager (`BackupWorker`).
-- **Initial Project Documentation**: Completed `README.md`, `WALKTHROUGH.md`, and `SCREENTOUR.md`.
+- **Selective Backup Categories**: Added `BackupCategory` enum (`DOCUMENTS`, `IMAGES`, `VIDEO`, `AUDIO`, `VOICE_NOTES`).
+- **Voice Notes Separation**: Enhanced `FileScanner` to classify `WhatsApp Voice Notes` and `PTT/` folders separately from music tracks.
+- **Category Settings UI**: Added Material3 category switches and quick-select buttons in `SettingsFragment`.
+- **Empty Category Guard**: Updated `RunBackupUseCase` to short-circuit cleanly if no categories are enabled.
 
-## [0.2.0] - 2026-07-16 12:30
+---
 
-### Added
-- **WhatsApp Business File Scanner**: Implemented `FileScanner` utility using MediaStore API to discover media and document files.
-- **BackupFile Model**: Defined a data class for scanned file metadata.
-- **Scoped Storage Permissions**: Added robust handling for storage permissions across Android versions, including Android 13+ granular media permissions.
-- **Permission UX**: Implemented rationale dialogs and settings deep-links for a graceful user experience.
-- **Real-time Feedback**: Updated the dashboard to display the count of discovered files during a scan.
-
-## [0.3.0] - 2026-07-16 12:45
+## [1.1.0] - 2026-07-28
 
 ### Added
-- **Google Drive Integration**: Implemented `DriveClient` using the Google Drive REST API.
-- **OAuth 2.0 Authentication**: Integrated Google Sign-In with minimal `DRIVE_FILE` scope.
-- **Folder Management**: Logic to create and identify backup folders in Drive.
-- **File Upload Engine**: Robust upload mechanism with parents-folder targeting.
-- **Test Dashboard Features**: Added Login and "Test Upload" buttons to the main dashboard for end-to-end verification.
-- **Infrastructure Docs**: Added detailed Google Cloud Console setup guide.
+- **SHA-256 Delta Engine**: Integrated `DetectChangedFilesUseCase` to calculate cryptographic file hashes and skip unchanged payloads.
+- **Delta Persistence**: Added `BackupFileEntry` entity and `BackupFileEntryDao` (Database v2) to store local file hashes and Drive file IDs.
+- **Force Full Backup**: Added manual override toggle in `SettingsFragment` to bypass delta detection when needed.
 
-## [0.4.0] - 2026-07-16 13:15
+---
 
-### Added
-- **Full Backup Orchestration**: Implemented `RunBackupUseCase` to coordinate the entire backup flow (Scan -> Folder Creation -> Upload).
-- **Progress Tracking Engine**: Integrated real-time progress updates using Kotlin `Flow`.
-- **Fault-Tolerant Uploads**: Added per-file retry logic (3 attempts) with linear backoff.
-- **Enhanced Dashboard UI**: Added a Material3 `LinearProgressIndicator`, progress counters, and current-file labels.
-- **Detailed Audit Logging**: Success (`✅`) and Failure (`❌`) indicators for every file in the activity logs.
-- **Architecture Documentation**: Added a Mermaid sequence diagram for the backup orchestration layer.
-
-## [0.5.0] - 2026-07-18 12:45
+## [1.0.0] - 2026-07-18
 
 ### Added
-- **Automatic Background Scheduling**: Implemented `BackupScheduler` to schedule recurring backups every Friday.
-- **WorkManager Integration**: Upgraded `BackupWorker` to a `CoroutineWorker` that runs `RunBackupUseCase` seamlessly in the background.
-- **Foreground Service Promotion**: The worker now promotes itself to a Foreground Service with a persistent notification to avoid Doze mode restrictions.
-- **Resilience on Reboot**: Added `BootReceiver` to automatically reschedule WorkManager tasks when the device restarts.
-- **Documentation**: Updated `README.md` with WorkManager flowchart, tech stack badges, and added relevant sections to walkthroughs and tours.
+- **Full Production Release**: End-to-end background backup orchestration via `RunBackupUseCase`, `BackupWorker`, and `DriveClient`.
+- **Edge Case Exception Handling**: Added structured recovery for `DriveStorageFullException`, `AuthExpiredException`, and `NoFilesFoundException`.
+- **Material 3 UI Polish**: Integrated progress indicators, audit logs adapter, and app launcher assets.
 
-## [0.6.0] - 2026-07-18 13:45
+---
 
-### Added
-- **Local Database Engine**: Integrated Android Room to persist backup metadata (timestamp, files count, success/fail counts, duration) locally across sessions.
-- **Backup History Dashboard**: Converted the history screen into a dynamic `RecyclerView` listing past backups. Features color-coded status badges and direct "Open in Drive" deep links.
-- **Interactive Settings Hub**: Built a comprehensive settings UI with a TimePicker for backup scheduling, Wi-Fi constraints, history retention period, and Google Account management.
-- **Data Schemas**: Implemented `BackupRecord` entity and `BackupRecordDao` to structure and query the historical data efficiently.
-
-## [1.0.0] - 2026-07-18 15:30
+## [0.6.0] - 2026-07-18
 
 ### Added
-- **Edge Case Resilience**: 
-  - Catches quota exceeded exceptions (`DriveStorageFullException`) and pauses cleanly with an actionable warning.
-  - Detects network drops mid-backup (`IOException`) and intelligently tells WorkManager to pause and resume once network is restored.
-  - Automatically identifies expired OAuth tokens and flags the UI for re-authentication (`AuthExpiredException`).
-  - Gracefully handles empty WhatsApp folders (`NoFilesFoundException`) with a friendly notification rather than an obscure error.
-- **UI Polish**:
-  - Introduced Material3 `TransitionManager` animations, ensuring smooth expansion and collapse when status cards update.
-  - Added a responsive "Retry Backup" button for immediate recovery when operations halt.
-  - Shipped a high-resolution Vector Drawable app icon for launcher screens.
-- **Environment Templates**: Added fully documented `.env.example` and `local.properties.example` detailing exact Google Cloud console setup procedures.
-- **Documentation Complete**: Finalized `README.md`, `WALKTHROUGH.md`, and `SCREENTOUR.md`. Eliminated all placeholder construction markers. The app is 1.0.0 ready.
+- **Room Database Integration**: Introduced `AppDatabase` (Version 3) and `BackupRecord` schema.
+- **History UI**: Built reactive `BackupHistoryFragment` driven by Room database Flows.
+
+---
+
+## [0.5.0] - 2026-07-18
+
+### Added
+- **WorkManager Background Engine**: Integrated `BackupScheduler` for periodic Friday backups.
+- **Foreground Service Elevation**: Promoted `BackupWorker` to a Foreground Service during execution.
+- **Boot Recovery**: Registered `BootReceiver` for `ACTION_BOOT_COMPLETED`.
+
+---
+
+## [0.4.0] - 2026-07-16
+
+### Added
+- **Backup Orchestration**: Implemented initial `RunBackupUseCase` with per-file retry policies.
+
+---
+
+## [0.3.0] - 2026-07-16
+
+### Added
+- **Google Drive Client**: Integrated Google Drive REST API v3 via Google Play Services Auth (`drive.file` scope).
+
+---
+
+## [0.2.0] - 2026-07-16
+
+### Added
+- **File Discovery Engine**: Implemented `FileScanner` using Android `MediaStore` Scoped Storage API.
+
+---
+
+## [0.1.0] - 2026-07-14
+
+### Added
+- **Initial Project Scaffold**: Standard Android application with Kotlin, min SDK 26, target SDK 34, and Navigation Component setup.
