@@ -24,6 +24,23 @@
 
 ---
 
+## 📊 Feature Status Inventory
+
+| Feature | Implementation Status | Validation Level | Notes |
+| :--- | :--- | :--- | :--- |
+| **WhatsApp Media Discovery** | Active | Confirmed by Source | Scans WhatsApp Business media via `MediaStore.Files` |
+| **SHA-256 Delta Hashing** | Active | Confirmed by Unit Test | Streaming 8KB chunking tested in `DetectChangedFilesUseCaseTest` |
+| **Selective Category Filtering** | Active | Confirmed by Unit Test | Enum categories & text mappings tested in `BackupCategoryTest` |
+| **Google Drive OAuth & Storage** | Active | Confirmed by Source | OAuth 2.0 via Play Services with `drive.file` scope |
+| **Room Database Execution Audit** | Active | Confirmed by Source | Room v3 (`AppDatabase`) tracking `BackupRecord` & `BackupFileResult` |
+| **WorkManager Friday Schedule** | Active | Confirmed by Source | Periodic weekly job configured with Wi-Fi constraint |
+| **Foreground Service Elevation** | Active | Confirmed by Source | `BackupWorker` shows ongoing status notification during execution |
+| **Boot Resiliency Receiver** | Active | Confirmed by Source | `BootReceiver` handles `ACTION_BOOT_COMPLETED` |
+| **History & Single-File Retry** | Active | Confirmed by Source | Interactive detail dialogs & single-file retry triggers |
+| **Demo Sandbox Mode** | Active | Confirmed by Source | `MainViewModel` populates mock history for testing |
+
+---
+
 ## ✨ What Problem Does WABackupPro Solve?
 
 WhatsApp Business stores message databases and media locally on your Android device. Standard personal backups may lack scheduling flexibility, lack per-file execution auditing, or collide with enterprise device management rules.
