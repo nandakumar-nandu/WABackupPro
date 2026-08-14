@@ -1,3 +1,6 @@
+> [!NOTE]
+> **Documentation Consolidation Notice**: The content of this document has been consolidated into the authoritative [USER_GUIDE.md](USER_GUIDE.md) (for end-user screen tours and usage instructions) and [ARCHITECTURE.md](ARCHITECTURE.md) (for developer screen navigation design). This file is preserved for historical reference.
+
 # Screen Tour: WABackupPro
 
 This document gives an overview of the screens configured in WABackupPro version 1.3.0.
@@ -66,18 +69,12 @@ This document gives an overview of the screens configured in WABackupPro version
 
 ## Screen Navigation Map
 
-```mermaid
-graph TD
-    Launcher([Launcher Icon]) --> MainActivity[MainActivity]
-    MainActivity -->|Default Screen| BackupFragment[Backup Dashboard]
-    MainActivity -->|Select Tab 2| HistoryFragment[Backup History]
-    MainActivity -->|Select Tab 3| SettingsFragment[Settings Configuration]
-    
-    HistoryFragment -->|Tap Backup Card| DetailFragment[Backup Detail Screen]
-    DetailFragment -->|Tap Failed File| RetryDialog[Error Dialog & Retry Button]
-    BackupFragment -->|Click Start Backup| LogView[ViewModel Updates Logs List]
-    BackupFragment -->|Drive Quota Full / Network Error| RetryButton[Show Retry Button]
-    SettingsFragment -->|Toggle Categories| CatSwitch[Select / Deselect Media Types]
-    SettingsFragment -->|Toggle Force Full Backup| DeltaSwitch[Override Delta Detection]
-    SettingsFragment -->|Click Login| GoogleConsent[Google OAuth Consent Flow]
+```
+[ Launcher Icon ]
+       │
+       ▼
+ [ MainActivity ]
+   ├──► Backup Dashboard (BackupFragment)
+   ├──► Backup History (BackupHistoryFragment) ──► Backup Detail (BackupDetailFragment)
+   └──► Settings Configuration (SettingsFragment)
 ```

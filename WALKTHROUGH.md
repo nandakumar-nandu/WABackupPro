@@ -1,3 +1,6 @@
+> [!NOTE]
+> **Documentation Consolidation Notice**: The content of this walkthrough document has been consolidated into the primary authoritative guides: [USER_GUIDE.md](USER_GUIDE.md) (for end-user workflow walkthroughs) and [ARCHITECTURE.md](ARCHITECTURE.md) (for technical execution mechanics). This file is preserved for historical reference.
+
 # Walkthrough: WABackupPro
 
 ## Why this app exists (The Problem)
@@ -143,23 +146,5 @@ The application uses the **Google Drive REST API v3** combined with **Google Pla
 4. **No Files Found**:
    - If the scanner finds an empty WhatsApp directory, the UseCase emits a `NoFilesFoundException` with a friendly user-facing message instead of proceeding with an empty folder creation on Drive.
 
-## User Journey Flowchart
-
-```mermaid
-journey
-    title User Journey: Installation to Automatic Backups
-    section Install & Launch
-      Install App from APK: 5: User
-      Launch WABackupPro: 5: User
-    section Setup & Auth
-      Authorize Google Drive: 4: User, App
-      Configure Backup Frequency & Categories: 4: User
-    section Automated Operations
-      System runs scheduled job in background: 5: App
-      Sync occurs over Wi-Fi: 5: App
-      Receive push notification of backup: 5: App
-      Check dashboard audit logs: 4: User
-```
-
 ---
-**This marks the complete architectural walkthrough of WABackupPro (v1.3.0)! 🚀**
+*WABackupPro Architectural Walkthrough · Version 1.3.0*
