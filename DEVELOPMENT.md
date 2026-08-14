@@ -34,61 +34,32 @@ Welcome to the developer documentation for **WABackupPro**. This guide provides 
 
 ---
 
-## 📦 Package & Project Structure
+## 📦 Target Package Structure (Clean Modular Monolith - Option A)
 
 ```
 app/src/main/java/com/wabackuppro/
-├── data/
-│   ├── local/
-│   │   ├── AppDatabase.kt          # Active Room Database (v3, "wabackuppro_database")
-│   │   ├── BackupDatabase.kt       # Legacy v1 DB (Deprecated migration reference)
-│   │   ├── BackupRecordDao.kt      # Legacy v1 DAO (Deprecated migration reference)
-│   │   ├── daos/                   # Active Room DAOs
-│   │   │   ├── BackupFileEntryDao.kt
-│   │   │   ├── BackupFileResultDao.kt
-│   │   │   └── BackupRecordDao.kt
-│   │   └── entities/               # Active Room Entities
-│   │       ├── BackupFileEntry.kt
-│   │       ├── BackupFileResult.kt
-│   │       └── BackupRecord.kt
-│   ├── remote/
-│   │   └── DriveClient.kt          # Google Drive REST API v3 wrapper
-│   └── repository/
-│       └── BackupRepository.kt     # Legacy repository abstraction (Deprecated)
-├── domain/
-│   ├── models/                     # Core domain data models
-│   │   ├── BackupCategory.kt
-│   │   ├── BackupFile.kt
-│   │   ├── BackupProgress.kt
-│   │   └── BackupRecord.kt
-│   └── usecases/                   # Business logic orchestrators
-│       ├── DetectChangedFilesUseCase.kt  # SHA-256 delta calculation engine
-│       └── RunBackupUseCase.kt           # Main execution workflow engine
-├── receivers/
-│   └── BootReceiver.kt             # Handles ACTION_BOOT_COMPLETED to restore schedules
-├── ui/
-│   ├── about/
-│   │   └── AboutActivity.kt        # About, legal terms, and payment integration
-│   ├── components/
-│   │   └── StatusIndicator.kt      # Shared custom status view component
-│   ├── history/
-│   │   ├── BackupDetailFragment.kt # Drill-down view of per-file execution results
-│   │   ├── BackupHistoryFragment.kt# History list view with search & chip filters
-│   │   ├── FileResultAdapter.kt    # Adapter for per-file detail cards
-│   │   └── HistoryAdapter.kt       # Adapter for history summary cards
-│   ├── main/
-│   │   ├── BackupFragment.kt       # Active backup dashboard
-│   │   ├── LogsAdapter.kt          # Adapter for dashboard real-time activity logs
-│   │   ├── MainActivity.kt         # Application shell & bottom navigation host
-│   │   └── MainViewModel.kt        # Dashboard state & demo mode manager
-│   └── settings/
-│       └── SettingsFragment.kt     # Preferences, category toggles & schedule picker
-├── utils/
-│   ├── BackupScheduler.kt          # WorkManager periodic job scheduler
-│   ├── FileScanner.kt              # Scoped Storage MediaStore scanner
-│   └── NetworkUtils.kt             # Connectivity check helper
-└── workers/
-    └── BackupWorker.kt             # CoroutineWorker promoted to Foreground Service
+├── core/                           # Core configuration, common utilities & shared visual components
+│   ├── config/                     # Shared Preference keys & constants
+│   ├── common/                     # Common helpers (NetworkUtils)
+│   └── ui/                         # Reusable custom UI components (StatusIndicator)
+├── data/                           # Data layer implementations
+│   ├── local/                      # Room Database (AppDatabase), entities & DAOs
+│   │   ├── daos/                   # Active DAOs (BackupFileEntryDao, BackupFileResultDao, BackupRecordDao)
+│   │   └── entities/               # Active Entities (BackupFileEntry, BackupFileResult, BackupRecord)
+│   ├── remote/                     # Remote storage API wrappers (DriveClient)
+│   └── repository/                 # Data repositories (BackupRepository - Deprecated)
+├── domain/                         # Pure business logic and domain models
+│   ├── models/                     # Data models (BackupFile, BackupProgress, BackupRecord, BackupCategory)
+│   └── usecases/                   # Business use cases (DetectChangedFilesUseCase, RunBackupUseCase)
+├── feature/                        # User-facing features and screens
+│   ├── main/                       # MainActivity, BackupFragment, MainViewModel, LogsAdapter
+│   ├── history/                    # BackupHistoryFragment, BackupDetailFragment, HistoryAdapter, FileResultAdapter
+│   ├── settings/                   # SettingsFragment
+│   └── about/                      # AboutActivity
+└── background/                     # System integration & background execution
+    ├── workers/                    # WorkManager workers (BackupWorker)
+    ├── receivers/                  # System broadcast receivers (BootReceiver)
+    └── utils/                      # File discovery & scheduling helpers (FileScanner, BackupScheduler)
 
 app/src/test/java/com/wabackuppro/
 ├── domain/
@@ -97,6 +68,15 @@ app/src/test/java/com/wabackuppro/
 │   └── usecases/
 │       └── DetectChangedFilesUseCaseTest.kt  # Unit tests for SHA-256 calculation & delta sorting
 ```
+
+---
+
+## ⚙️ Automated CI Pipeline Integration
+
+GitHub Actions workflow `.github/workflows/ci.yml` validates code quality on every push and pull request:
+1. **JDK Setup**: Configures JDK 17 environment.
+2. **Unit Testing**: Runs `./gradlew test` (verifying SHA-256 delta detection & category models).
+3. **Debug Build**: Compiles `./gradlew assembleDebug` to verify compilation integrity.
 
 ---
 
