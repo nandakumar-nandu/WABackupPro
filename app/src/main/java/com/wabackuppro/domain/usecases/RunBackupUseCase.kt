@@ -30,6 +30,14 @@ class NoCategoriesSelectedException(message: String) : Exception(message)
  * RunBackupUseCase orchestrates the incremental backup workflow with delta detection, category filtering,
  * per-file result persistence in Room DB, and Demo Mode simulation for testing & screenshots.
  */
+/**
+ * [RunBackupUseCase] orchestrates the core backup execution pipeline:
+ * scanning media files, calculating SHA-256 deltas, creating Drive folders, uploading files, and persisting audit records.
+ *
+ * ## Dependency Boundaries
+ * Interacts directly with [com.wabackuppro.data.remote.DriveClient], [com.wabackuppro.data.local.daos.BackupRecordDao],
+ * [com.wabackuppro.data.local.daos.BackupFileResultDao], and [com.wabackuppro.core.common.NetworkUtils].
+ */
 class RunBackupUseCase(
     private val fileScanner: FileScanner,
     private val driveClient: DriveClient,
