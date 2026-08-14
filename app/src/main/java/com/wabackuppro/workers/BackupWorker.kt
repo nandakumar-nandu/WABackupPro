@@ -30,6 +30,10 @@ import kotlinx.coroutines.flow.collect
  * - This allows it to run longer than 10 minutes (essential for large backups) and guarantees
  *   it won't be killed by the OS Doze mode easily.
  */
+/**
+ * [BackupWorker] is the primary WorkManager background job worker for WABackupPro.
+ * Promoted to a Foreground Service during execution displaying an ongoing data-sync notification.
+ */
 class BackupWorker(
     context: Context,
     params: WorkerParameters
